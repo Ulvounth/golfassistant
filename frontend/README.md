@@ -1,24 +1,24 @@
 # GolfTracker Frontend
 
-React-basert frontend for GolfTracker-appen.
+React-based frontend for the GolfTracker app.
 
-## 🚀 Kom i gang
+## 🚀 Getting Started
 
-### Installasjon
+### Installation
 
 ```bash
 npm install
 ```
 
-### Utvikling
+### Development
 
 ```bash
 npm run dev
 ```
 
-Åpner appen på http://localhost:3000
+Opens the app at <http://localhost:3000>
 
-### Bygg for produksjon
+### Build for production
 
 ```bash
 npm run build
@@ -30,16 +30,16 @@ npm run build
 npm run lint
 ```
 
-## 📁 Prosjektstruktur
+## 📁 Project Structure
 
-```
+```text
 src/
-├── components/          # Gjenbrukbare komponenter
-│   ├── Layout.tsx       # Hovedlayout med navbar og footer
-│   ├── Navbar.tsx       # Navigasjonsmeny
+├── components/          # Reusable components
+│   ├── Layout.tsx       # Main layout with navbar and footer
+│   ├── Navbar.tsx       # Navigation menu
 │   ├── Footer.tsx       # Footer
-│   └── ProtectedRoute.tsx  # Route guard for autentisering
-├── pages/               # Sidekomponenter
+│   └── ProtectedRoute.tsx  # Route guard for authentication
+├── pages/               # Page components
 │   ├── HomePage.tsx
 │   ├── LoginPage.tsx
 │   ├── RegisterPage.tsx
@@ -48,48 +48,48 @@ src/
 │   ├── RoundHistoryPage.tsx
 │   ├── ProfilePage.tsx
 │   └── LeaderboardPage.tsx
-├── services/            # API-kall
+├── services/            # API calls
 │   ├── authService.ts
 │   ├── roundService.ts
 │   ├── userService.ts
 │   ├── courseService.ts
 │   └── leaderboardService.ts
-├── store/               # Global state med Zustand
+├── store/               # Global state with Zustand
 │   └── authStore.ts
-├── types/               # TypeScript type-definisjoner
+├── types/               # TypeScript type definitions
 │   └── index.ts
-├── lib/                 # Utilities og konfigurasjoner
-│   └── axios.ts         # Axios-konfigurasjon med interceptors
-├── App.tsx              # Hovedkomponent med routing
+├── lib/                 # Utilities and configurations
+│   └── axios.ts         # Axios configuration with interceptors
+├── App.tsx              # Main component with routing
 ├── main.tsx             # Entry point
-└── index.css            # Global styling med Tailwind
+└── index.css            # Global styling with Tailwind
 ```
 
 ## 🎨 Styling
 
-Appen bruker Tailwind CSS for styling. Egendefinerte klasser:
+The app uses Tailwind CSS for styling. Custom classes:
 
-- `.btn`, `.btn-primary`, `.btn-secondary`, `.btn-outline` - Knapper
-- `.input` - Input-felt
-- `.card` - Container med shadow
+- `.btn`, `.btn-primary`, `.btn-secondary`, `.btn-outline` - Buttons
+- `.input` - Input fields
+- `.card` - Container with shadow
 
-## 🔐 Autentisering
+## 🔐 Authentication
 
-JWT-basert autentisering med Zustand state management.
+JWT-based authentication with Zustand state management.
 
-- Token lagres i localStorage
-- Automatisk inkludert i alle API-kall via Axios interceptor
-- ProtectedRoute-komponent beskytter private ruter
+- Token stored in localStorage
+- Automatically included in all API calls via Axios interceptor
+- ProtectedRoute component protects private routes
 
 ## 📡 API Integration
 
-Alle API-kall går via services-mappen. Base URL settes i `.env`:
+All API calls go through the services folder. Base URL is set in `.env`:
 
-```
+```bash
 VITE_API_URL=http://localhost:3001
 ```
 
-## 🛠️ Teknologier
+## 🛠️ Technologies
 
 - React 18
 - TypeScript
@@ -98,4 +98,4 @@ VITE_API_URL=http://localhost:3001
 - Zustand (state management)
 - Axios (HTTP client)
 - Vite (build tool)
-- Lucide React (ikoner)
+- Lucide React (icons)

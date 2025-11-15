@@ -1,17 +1,17 @@
 # ⛳ GolfTracker
 
-En fullstack golf-app for registrering av golfrunder og automatisk handicap-beregning.
+A fullstack golf app for tracking rounds and automatic handicap calculation.
 
-## 🚀 Funksjoner
+## 🚀 Features
 
-- 🔐 Brukerautentisering (JWT)
-- ⛳ Runderegistrering (9 eller 18 hull)
-- 📊 Automatisk handicap-beregning
-- 📜 Rundehistorikk
-- 👤 Brukerprofil med profilbilde
+- 🔐 User authentication (JWT)
+- ⛳ Round registration (9 or 18 holes)
+- 📊 Automatic handicap calculation
+- 📜 Round history
+- 👤 User profile with profile image
 - 🏆 Leaderboard
 
-## 🛠️ Teknologi
+## 🛠️ Technology
 
 **Frontend:** React 18 + TypeScript + Tailwind CSS  
 **Backend:** Node.js + Express + TypeScript  
@@ -19,7 +19,7 @@ En fullstack golf-app for registrering av golfrunder og automatisk handicap-bere
 **Storage:** AWS S3  
 **Infrastructure:** AWS CDK + CloudFormation
 
-## 📁 Struktur
+## 📁 Structure
 
 ```text
 golftracker/
@@ -28,74 +28,74 @@ golftracker/
 └── infrastructure/     # AWS CDK
 ```
 
-## 🚀 Kom i gang
+## 🚀 Getting Started
 
-### Forutsetninger
+### Prerequisites
 
 - Node.js 18+
-- AWS CLI konfigurert med credentials
+- AWS CLI configured with credentials
 - AWS CDK CLI: `npm install -g aws-cdk`
 
-### 1. Klon og installer
+### 1. Clone and Install
 
 ```bash
 git clone https://github.com/Ulvounth/golftracker.git
 cd golftracker
 
-# Installer dependencies
+# Install dependencies
 cd frontend && npm install
 cd ../backend && npm install
 cd ../infrastructure && npm install
 ```
 
-### 2. Sett opp AWS
+### 2. Setup AWS
 
 ```bash
-# Konfigurer AWS CLI
+# Configure AWS CLI
 aws configure
 
-# Deploy infrastruktur (DynamoDB, S3, API Gateway)
+# Deploy infrastructure (DynamoDB, S3, API Gateway)
 cd infrastructure
 npx cdk bootstrap
 npx cdk deploy --all
 ```
 
-### 3. Kjør lokalt
+### 3. Run Locally
 
 **Backend:**
 
 ```bash
 cd backend
-npm run dev  # Starter på port 3001
+npm run dev  # Starts on port 3001
 ```
 
 **Frontend:**
 
 ```bash
 cd frontend
-npm run dev  # Starter på port 3000
+npm run dev  # Starts on port 3000
 ```
 
-Åpne <http://localhost:3000> i nettleseren! 🎉
+Open <http://localhost:3000> in your browser! 🎉
 
-## 🐳 Med Docker
+## 🐳 With Docker
 
 ```bash
-# Development med hot reload
+# Development with hot reload
 docker-compose -f docker-compose.dev.yml up
 
 # Production
 docker-compose up
 ```
 
-## 📚 Mer info
+## 📚 More Info
 
-Se README i hver mappe for detaljer:
+See README in each folder for details:
 
 - [Backend README](./backend/README.md)
 - [Frontend README](./frontend/README.md)
 - [Infrastructure README](./infrastructure/README.md)
 
-## 👤 Forfatter
+## 👤 Author
 
 Ulvounth - GitHub: [@Ulvounth](https://github.com/Ulvounth)

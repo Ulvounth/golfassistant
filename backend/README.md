@@ -2,33 +2,33 @@
 
 Node.js + TypeScript backend API for GolfTracker.
 
-## 🚀 Kom i gang
+## 🚀 Getting Started
 
-### Installasjon
+### Installation
 
 ```bash
 npm install
 ```
 
-### Kjør i development-modus
+### Run in development mode
 
 ```bash
 npm run dev
 ```
 
-### Bygg for produksjon
+### Build for production
 
 ```bash
 npm run build
 npm start
 ```
 
-## 📁 Prosjektstruktur
+## 📁 Project Structure
 
 ```
 src/
-├── config/              # Konfigurasjoner (AWS, database)
-│   └── aws.ts           # AWS SDK konfigurasjon
+├── config/              # Configuration (AWS, database)
+│   └── aws.ts           # AWS SDK configuration
 ├── controllers/         # Request handlers
 │   ├── authController.ts
 │   ├── userController.ts
@@ -36,9 +36,9 @@ src/
 │   ├── courseController.ts
 │   └── leaderboardController.ts
 ├── middleware/          # Express middleware
-│   ├── authenticate.ts  # JWT autentisering
+│   ├── authenticate.ts  # JWT authentication
 │   ├── errorHandler.ts  # Global error handler
-│   └── validate.ts      # Zod validering
+│   └── validate.ts      # Zod validation
 ├── routes/              # API routes
 │   ├── authRoutes.ts
 │   ├── userRoutes.ts
@@ -53,18 +53,18 @@ src/
 └── index.ts             # Entry point
 ```
 
-## 🔒 Autentisering
+## 🔒 Authentication
 
-API bruker JWT (JSON Web Tokens) for autentisering.
+API uses JWT (JSON Web Tokens) for authentication.
 
-### Registrering
+### Registration
 
 ```
 POST /api/auth/register
 Body: { email, password, firstName, lastName }
 ```
 
-### Innlogging
+### Login
 
 ```
 POST /api/auth/login
@@ -72,9 +72,9 @@ Body: { email, password }
 Returns: { user, token }
 ```
 
-### Autentiserte requests
+### Authenticated requests
 
-Legg til header:
+Add header:
 
 ```
 Authorization: Bearer <token>
@@ -84,53 +84,53 @@ Authorization: Bearer <token>
 
 ### Auth
 
-- `POST /api/auth/register` - Registrer ny bruker
-- `POST /api/auth/login` - Logg inn
-- `GET /api/auth/verify` - Verifiser token
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - Login
+- `GET /api/auth/verify` - Verify token
 
 ### User
 
-- `GET /api/user/profile` - Hent profil
-- `PUT /api/user/profile` - Oppdater profil
-- `POST /api/user/profile-image` - Last opp profilbilde
-- `GET /api/user/handicap-history` - Hent handicap-historikk
+- `GET /api/user/profile` - Get profile
+- `PUT /api/user/profile` - Update profile
+- `POST /api/user/profile-image` - Upload profile image
+- `GET /api/user/handicap-history` - Get handicap history
 
 ### Rounds
 
-- `GET /api/rounds` - Hent alle runder
-- `GET /api/rounds/:id` - Hent spesifikk runde
-- `POST /api/rounds` - Opprett ny runde
-- `PUT /api/rounds/:id` - Oppdater runde
-- `DELETE /api/rounds/:id` - Slett runde
+- `GET /api/rounds` - Get all rounds
+- `GET /api/rounds/:id` - Get specific round
+- `POST /api/rounds` - Create new round
+- `PUT /api/rounds/:id` - Update round
+- `DELETE /api/rounds/:id` - Delete round
 
 ### Courses
 
-- `GET /api/courses` - Hent alle baner
-- `GET /api/courses/:id` - Hent spesifikk bane
-- `GET /api/courses/search?q=query` - Søk etter baner
+- `GET /api/courses` - Get all courses
+- `GET /api/courses/:id` - Get specific course
+- `GET /api/courses/search?q=query` - Search courses
 
 ### Leaderboard
 
-- `GET /api/leaderboard?limit=50` - Hent leaderboard
+- `GET /api/leaderboard?limit=50` - Get leaderboard
 
 ## 🗄️ Database
 
-Bruker AWS DynamoDB med følgende tabeller:
+Uses AWS DynamoDB with the following tables:
 
-- `golftracker-users` - Brukere
-- `golftracker-rounds` - Golfrunder
-- `golftracker-courses` - Golfbaner
+- `golftracker-users` - Users
+- `golftracker-rounds` - Golf rounds
+- `golftracker-courses` - Golf courses
 
 ## 📦 S3
 
-Profilbilder lagres i S3:
+Profile images are stored in S3:
 
 - Bucket: `golftracker-profiles`
 - Prefix: `profile-images/`
 
-## 🛠️ Miljøvariabler
+## 🛠️ Environment Variables
 
-Se `.env.example` for nødvendige miljøvariabler.
+See `.env.example` for required environment variables.
 
 ## 🧪 Testing
 
@@ -138,10 +138,10 @@ Se `.env.example` for nødvendige miljøvariabler.
 npm test
 ```
 
-## 📝 Notater
+## 📝 Notes
 
-- Handicap-beregningen er forenklet og bør forbedres i produksjon
-- Bør legge til rate limiting
-- Bør legge til request logging med Morgan eller Winston
-- Bør legge til input sanitization
-- Bør legge til caching med Redis for ofte-brukte data
+- Handicap calculation is simplified and should be improved for production
+- Should add rate limiting
+- Should add request logging with Morgan or Winston
+- Should add input sanitization
+- Should add caching with Redis for frequently accessed data

@@ -2,44 +2,44 @@
 
 AWS CDK Infrastructure-as-Code for GolfTracker.
 
-## 🏗️ Arkitektur
+## 🏗️ Architecture
 
-Prosjektet bruker følgende AWS-tjenester:
+The project uses the following AWS services:
 
-- **DynamoDB**: Database for brukere, runder og golfbaner
-- **S3**: Storage for profilbilder
+- **DynamoDB**: Database for users, rounds, and golf courses
+- **S3**: Storage for profile images
 - **Lambda**: Backend API functions
 - **API Gateway**: REST API endpoint
-- **CloudWatch**: Logging og monitoring
+- **CloudWatch**: Logging and monitoring
 
 ## 📦 Stacks
 
 ### DatabaseStack
 
-- `golftracker-users` - Brukertabell med email-index
-- `golftracker-rounds` - Rundetabell med userId-date-index
-- `golftracker-courses` - Golfbanetabell
+- `golftracker-users` - User table with email-index
+- `golftracker-rounds` - Rounds table with userId-date-index
+- `golftracker-courses` - Golf courses table
 
 ### StorageStack
 
-- `golftracker-profiles` - S3 bucket for profilbilder
+- `golftracker-profiles` - S3 bucket for profile images
 
 ### ApiStack
 
 - Lambda function for backend API
-- API Gateway med CORS konfigurert
+- API Gateway with CORS configured
 - CloudWatch logging
 
 ## 🚀 Deployment
 
-### Forutsetninger
+### Prerequisites
 
 ```bash
 npm install -g aws-cdk
 aws configure
 ```
 
-### Bootstrap CDK (første gang)
+### Bootstrap CDK (first time)
 
 ```bash
 cdk bootstrap aws://ACCOUNT-ID/REGION
@@ -54,7 +54,7 @@ npm run build
 cdk deploy --all
 ```
 
-### Deploy enkeltstack
+### Deploy single stack
 
 ```bash
 cdk deploy GolfTrackerDatabaseStack
@@ -64,29 +64,29 @@ cdk deploy GolfTrackerApiStack
 
 ## 🧪 Testing
 
-### Se hva som vil bli deployed
+### Preview changes
 
 ```bash
 cdk diff
 ```
 
-### Generer CloudFormation template
+### Generate CloudFormation template
 
 ```bash
 cdk synth
 ```
 
-## 🗑️ Sletting
+## 🗑️ Cleanup
 
-**OBS:** Dette sletter alle ressurser!
+**WARNING:** This deletes all resources!
 
 ```bash
 cdk destroy --all
 ```
 
-## 📝 Miljøvariabler
+## 📝 Environment Variables
 
-Sett følgende miljøvariabler før deployment:
+Set the following environment variables before deployment:
 
 ```bash
 export CDK_DEFAULT_ACCOUNT=your-account-id
@@ -94,57 +94,30 @@ export CDK_DEFAULT_REGION=eu-north-1
 export JWT_SECRET=your-secret-key
 ```
 
-## 🔧 Konfigurasjon
+## 🔧 Configuration
 
-### Kostnadsstyring
+### Cost Management
 
-Alle tabeller bruker PAY_PER_REQUEST billing mode for å minimere kostnader i development.
+All DynamoDB tables use **PAY_PER_REQUEST** billing mode to minimize costs.
 
-### Retention Policies
+### Security
 
-- DynamoDB tabeller: RETAIN (slettes ikke automatisk)
-- S3 bucket: RETAIN (slettes ikke automatisk)
-- CloudWatch logs: 7 dager
-
-## 📚 Useful CDK Commands
-
-- `npm run build` - Kompiler TypeScript til JavaScript
-- `npm run watch` - Watch for endringer
-- `cdk ls` - List alle stacks
-- `cdk synth` - Generer CloudFormation templates
-- `cdk diff` - Sammenlign deployed stack med current state
-- `cdk deploy` - Deploy this stack til AWS account/region
-- `cdk destroy` - Slett stack fra AWS
-
-## 🔒 Sikkerhet
-
-### Produksjonsanbefalinger:
-
-- Bruk Secrets Manager for JWT_SECRET
-- Begrens CORS origins til faktisk domene
-- Implementer API Gateway authorizer
-- Aktiver AWS WAF for API Gateway
-- Konfigurer S3 bucket policies mer restriktivt
-- Bruk VPC for Lambda functions
-- Implementer rate limiting
+- S3 bucket has public read access disabled by default
+- API Gateway has CORS configured
+- Lambda functions have minimal IAM permissions
 
 ## 📊 Monitoring
 
-CloudWatch dashboards og alarmer bør legges til for:
+CloudWatch logs are automatically created for:
 
-- Lambda errors og throttling
-- API Gateway 4xx/5xx errors
-- DynamoDB consumed capacity
-- S3 bucket size
+- Lambda function execution
+- API Gateway requests
+- DynamoDB operations
 
-## 💰 Kostnader
+## 🔐 Best Practices
 
-Estimerte månedlige kostnader for lav trafikk:
-
-- DynamoDB: $1-5 (pay per request)
-- S3: $1-2
-- Lambda: Gratis tier eller < $1
-- API Gateway: $3.50 per million requests
-- CloudWatch: < $1
-
-**Total:** ~$5-10/måned for lav trafikk
+- Use separate AWS accounts for dev/staging/prod
+- Enable DynamoDB point-in-time recovery in production
+- Set up CloudWatch alarms for critical metrics
+- Use AWS Secrets Manager for sensitive data
+- Enable AWS CloudTrail for audit logging
