@@ -37,12 +37,14 @@ export function RegisterPage() {
     setLoading(true);
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { confirmPassword, ...registerData } = formData;
       const response = await authService.register(registerData);
       login(response.user, response.token);
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Registrering feilet. Prøv igjen.');
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || 'Registrering feilet. Prøv igjen.');
     } finally {
       setLoading(false);
     }

@@ -25,8 +25,9 @@ export function LoginPage() {
       const response = await authService.login(formData);
       login(response.user, response.token);
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Innlogging feilet. Prøv igjen.');
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || 'Innlogging feilet. Prøv igjen.');
     } finally {
       setLoading(false);
     }
