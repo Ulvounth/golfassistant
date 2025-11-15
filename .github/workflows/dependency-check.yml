@@ -1,0 +1,36 @@
+name: Dependency Update Check
+
+on:
+  schedule:
+    # Kjør hver mandag kl 09:00
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  check-dependencies:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        workspace: [frontend, backend, infrastructure]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Check for outdated dependencies
+        working-directory: ./${{ matrix.workspace }}
+        run: |
+          npm outdated || true
+          echo "## Outdated dependencies in ${{ matrix.workspace }}" >> $GITHUB_STEP_SUMMARY
+          npm outdated >> $GITHUB_STEP_SUMMARY || true
+
+      - name: Check for security vulnerabilities
+        working-directory: ./${{ matrix.workspace }}
+        run: |
+          npm audit --audit-level=moderate || true
+          echo "## Security audit for ${{ matrix.workspace }}" >> $GITHUB_STEP_SUMMARY
+          npm audit >> $GITHUB_STEP_SUMMARY || true

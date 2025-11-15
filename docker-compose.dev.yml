@@ -1,0 +1,51 @@
+# Development - Kjører backend og frontend med hot reload og ekte AWS
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: golftracker-backend-dev
+    ports:
+      - '3001:3001'
+    environment:
+      - PORT=3001
+      - NODE_ENV=development
+      - JWT_SECRET=dev-secret-key
+      - AWS_REGION=eu-north-1
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - DYNAMODB_USERS_TABLE=golftracker-users
+      - DYNAMODB_ROUNDS_TABLE=golftracker-rounds
+      - DYNAMODB_COURSES_TABLE=golftracker-courses
+      - S3_BUCKET_NAME=golftracker-profiles
+      - CORS_ORIGIN=http://localhost:3000
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: npm run dev
+    networks:
+      - golftracker
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: golftracker-frontend-dev
+    ports:
+      - '3000:3000'
+    environment:
+      - VITE_API_URL=http://localhost:3001
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev -- --host 0.0.0.0
+    depends_on:
+      - backend
+    networks:
+      - golftracker
+
+networks:
+  golftracker:
+    driver: bridge
