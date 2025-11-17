@@ -1,34 +1,120 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { TrendingUp, Users, Award, Target } from 'lucide-react';
+import { TrendingUp, Users, Award, Target, Trophy } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
+import { leaderboardService } from '@/services/leaderboardService';
+import { LeaderboardEntry } from '@/types';
 
 /**
  * HomePage - landingsside
  */
 export function HomePage() {
   const isAuthenticated = useAuthStore(state => state.isAuthenticated);
+  const [topPlayers, setTopPlayers] = useState<LeaderboardEntry[]>([]);
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
+
+  useEffect(() => {
+    loadTopPlayers();
+  }, []);
+
+  const loadTopPlayers = async () => {
+    try {
+      const leaderboard = await leaderboardService.getLeaderboard(5);
+      setTopPlayers(leaderboard);
+    } catch (error) {
+      console.error('Failed to load leaderboard:', error);
+    } finally {
+      setLoadingLeaderboard(false);
+    }
+  };
+
+  const getMedalEmoji = (rank: number) => {
+    if (rank === 1) return '🥇';
+    if (rank === 2) return '🥈';
+    if (rank === 3) return '🥉';
+    return `${rank}.`;
+  };
 
   return (
     <div className="bg-gradient-to-b from-primary-50 to-white">
-      {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
-        <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-          Din digitale <span className="text-primary-600">golfassistent</span>
-        </h1>
-        <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-          Registrer runder, følg handicap, og konkurrer med venner. GolfTracker gjør det enkelt å
-          holde oversikt over din golfprogresjon.
-        </p>
-        {!isAuthenticated && (
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/register" className="btn-primary text-lg px-8 py-3">
-              Kom i gang gratis
-            </Link>
-            <Link to="/login" className="btn-outline text-lg px-8 py-3">
-              Logg inn
-            </Link>
+      {/* Hero Section with Leaderboard */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main Hero Content */}
+          <div className="lg:col-span-2 text-center lg:text-left">
+            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+              Din digitale <span className="text-primary-600">golfassistent</span>
+            </h1>
+            <p className="text-xl text-gray-600 mb-8">
+              Registrer runder, følg handicap, og konkurrer med venner. GolfTracker gjør det enkelt
+              å holde oversikt over din golfprogresjon.
+            </p>
+            {!isAuthenticated && (
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <Link to="/register" className="btn-primary text-lg px-8 py-3">
+                  Kom i gang gratis
+                </Link>
+                <Link to="/login" className="btn-outline text-lg px-8 py-3">
+                  Logg inn
+                </Link>
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Mini Leaderboard */}
+          <div className="lg:col-span-1">
+            <div className="card bg-white shadow-lg">
+              <div className="flex items-center gap-2 mb-4">
+                <Trophy className="text-yellow-600" size={24} />
+                <h3 className="text-xl font-bold">Topp spillere</h3>
+              </div>
+
+              {loadingLeaderboard ? (
+                <p className="text-gray-600 text-sm">Laster...</p>
+              ) : topPlayers.length === 0 ? (
+                <p className="text-gray-600 text-sm">Ingen spillere ennå</p>
+              ) : (
+                <div className="space-y-3">
+                  {topPlayers.map((player, index) => (
+                    <div
+                      key={player.userId}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 text-center font-bold text-sm">
+                          {getMedalEmoji(index + 1)}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-sm">
+                            {player.firstName} {player.lastName.charAt(0)}.
+                          </p>
+                          <p className="text-xs text-gray-600">
+                            {player.roundsPlayed} {player.roundsPlayed === 1 ? 'runde' : 'runder'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-primary-600">
+                          {player.handicap.toFixed(1)}
+                        </p>
+                        <p className="text-xs text-gray-500">HCP</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {topPlayers.length > 0 && (
+                <Link
+                  to={isAuthenticated ? '/leaderboard' : '/register'}
+                  className="block mt-4 text-center text-primary-600 hover:underline text-sm font-medium"
+                >
+                  {isAuthenticated ? 'Se full leaderboard →' : 'Registrer deg for å konkurrere →'}
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Features */}
