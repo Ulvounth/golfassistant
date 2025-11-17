@@ -1,11 +1,56 @@
+import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
+import { roundService } from '@/services/roundService';
+import { userService } from '@/services/userService';
+import { GolfRound } from '@/types';
 
 /**
- * ProfilePage - brukerens profilside
- * (Dette er en placeholder som vil bli utvidet senere)
+ * ProfilePage - brukerens profilside med runde-historikk
  */
 export function ProfilePage() {
   const user = useAuthStore(state => state.user);
+  const updateUser = useAuthStore(state => state.updateUser);
+  const [rounds, setRounds] = useState<GolfRound[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const loadData = async () => {
+    try {
+      // Hent oppdatert brukerdata
+      const userData = await userService.getProfile();
+      updateUser(userData);
+
+      // Hent runder
+      const roundsData = await roundService.getRounds();
+      setRounds(roundsData);
+    } catch (error) {
+      console.error('Failed to load profile data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('nb-NO', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  };
+
+  const getScoreColor = (score: number, par: number) => {
+    const diff = score - par;
+    if (diff <= -2) return 'text-blue-600 font-bold'; // Eagle or better
+    if (diff === -1) return 'text-green-600 font-semibold'; // Birdie
+    if (diff === 0) return 'text-gray-700'; // Par
+    if (diff === 1) return 'text-orange-600'; // Bogey
+    return 'text-red-600'; // Double bogey or worse
+  };
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -30,19 +75,76 @@ export function ProfilePage() {
       </div>
 
       <div className="card">
-        <h3 className="text-xl font-semibold mb-4">Om meg</h3>
-        <p className="text-gray-600">{user?.bio || 'Ingen bio lagt til ennå.'}</p>
+        <h3 className="text-xl font-semibold mb-4">Mine runder</h3>
 
-        <div className="mt-6">
-          <p className="text-gray-600">Funksjoner som implementeres:</p>
-          <ul className="list-disc list-inside mt-2 text-gray-600 space-y-1">
-            <li>Rediger profilinformasjon</li>
-            <li>Last opp profilbilde til S3</li>
-            <li>Oppdater bio</li>
-            <li>Handicap-historikk graf</li>
-            <li>Personlige statistikker</li>
-          </ul>
-        </div>
+        {loading ? (
+          <p className="text-gray-600">Laster runder...</p>
+        ) : rounds.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-600 mb-4">Du har ikke registrert noen runder ennå.</p>
+            <a href="/new-round" className="btn-primary inline-block">
+              Registrer din første runde
+            </a>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {rounds.map(round => (
+              <div key={round.id} className="border rounded-lg p-4 hover:bg-gray-50">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h4 className="font-semibold text-lg">{round.courseName}</h4>
+                    <p className="text-sm text-gray-600">{formatDate(round.date)}</p>
+                  </div>
+                  <div className="text-right">
+                    <p
+                      className={`text-2xl font-bold ${getScoreColor(
+                        round.totalScore,
+                        round.totalPar
+                      )}`}
+                    >
+                      {round.totalScore}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Par {round.totalPar}
+                      {' • '}
+                      {round.totalScore - round.totalPar > 0 ? '+' : ''}
+                      {round.totalScore - round.totalPar}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 text-sm text-gray-600 mt-2">
+                  <span>
+                    {round.teeColor === 'white' && '⚪ Hvit'}
+                    {round.teeColor === 'yellow' && '🟡 Gul'}
+                    {round.teeColor === 'blue' && '🔵 Blå'}
+                    {round.teeColor === 'red' && '🔴 Rød'}
+                  </span>
+                  <span>• {round.numberOfHoles} hull</span>
+                  <span>• Differensial: {round.scoreDifferential.toFixed(1)}</span>
+                </div>
+
+                {round.players && round.players.length > 0 && (
+                  <div className="mt-2 pt-2 border-t text-sm text-gray-600">
+                    <span className="font-medium">👥 Spilte med:</span>
+                    <span className="ml-1">
+                      {round.players.length} {round.players.length === 1 ? 'person' : 'personer'}
+                    </span>
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {rounds.length >= 20 && (
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg text-sm">
+                <p className="text-blue-800">
+                  ℹ️ <strong>WHS Handicap:</strong> Ditt handicap beregnes fra gjennomsnittet av
+                  dine 8 beste score differentials av de siste 20 rundene.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

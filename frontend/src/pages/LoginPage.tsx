@@ -1,5 +1,5 @@
 import { useState, FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { authService } from '@/services/authService';
 
@@ -8,6 +8,8 @@ import { authService } from '@/services/authService';
  */
 export function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get('redirect') || '/dashboard';
   const login = useAuthStore(state => state.login);
   const [formData, setFormData] = useState({
     email: '',
@@ -24,7 +26,7 @@ export function LoginPage() {
     try {
       const response = await authService.login(formData);
       login(response.user, response.token);
-      navigate('/dashboard');
+      navigate(redirectTo);
     } catch (err) {
       const error = err as { response?: { data?: { message?: string } } };
       setError(error.response?.data?.message || 'Innlogging feilet. Prøv igjen.');
@@ -38,6 +40,13 @@ export function LoginPage() {
       <div className="max-w-md w-full">
         <div className="card">
           <h2 className="text-3xl font-bold text-center mb-8">Logg inn</h2>
+
+          {redirectTo !== '/dashboard' && (
+            <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg mb-4 text-sm">
+              <p className="font-semibold mb-1">� Ikke bekymre deg!</p>
+              <p>Dataene dine er lagret. Logg inn så kan du fortsette der du slapp.</p>
+            </div>
+          )}
 
           {error && <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg mb-4">{error}</div>}
 

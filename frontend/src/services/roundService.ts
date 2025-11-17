@@ -7,6 +7,7 @@ export interface CreateRoundData {
   teeColor: 'white' | 'yellow' | 'blue' | 'red';
   numberOfHoles: 9 | 18;
   date: string;
+  players: string[]; // Array of userIds
   holes: HoleScore[];
 }
 

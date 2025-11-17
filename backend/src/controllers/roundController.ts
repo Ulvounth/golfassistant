@@ -16,6 +16,95 @@ const calculateScoreDifferential = (
 };
 
 /**
+ * Beregn og oppdater brukerens handicap basert på WHS (World Handicap System)
+ * Handicap = gjennomsnitt av de 8 beste score differentials av de siste 20 rundene
+ */
+const updateUserHandicap = async (userId: string): Promise<void> => {
+  try {
+    // Hent brukerens siste 20 runder
+    const roundsResult = await dynamodb
+      .query({
+        TableName: TABLES.ROUNDS,
+        IndexName: 'userId-date-index',
+        KeyConditionExpression: 'userId = :userId',
+        ExpressionAttributeValues: {
+          ':userId': userId,
+        },
+        ScanIndexForward: false, // Nyeste først
+        Limit: 20,
+      })
+      .promise();
+
+    const rounds = roundsResult.Items || [];
+
+    if (rounds.length === 0) {
+      // Ingen runder, sett handicap til 54 (maks)
+      await dynamodb
+        .update({
+          TableName: TABLES.USERS,
+          Key: { id: userId },
+          UpdateExpression: 'set handicap = :handicap, updatedAt = :updatedAt',
+          ExpressionAttributeValues: {
+            ':handicap': 54.0,
+            ':updatedAt': new Date().toISOString(),
+          },
+        })
+        .promise();
+      return;
+    }
+
+    // Sorter etter score differential (beste først)
+    const sortedDifferentials = rounds.map(r => r.scoreDifferential).sort((a, b) => a - b);
+
+    // WHS regel: Bruk antall runder for å bestemme hvor mange som teller
+    let numberOfScoresToUse = 1;
+    if (rounds.length >= 20) {
+      numberOfScoresToUse = 8;
+    } else if (rounds.length >= 19) {
+      numberOfScoresToUse = 7;
+    } else if (rounds.length >= 16) {
+      numberOfScoresToUse = 6;
+    } else if (rounds.length >= 12) {
+      numberOfScoresToUse = 5;
+    } else if (rounds.length >= 9) {
+      numberOfScoresToUse = 4;
+    } else if (rounds.length >= 6) {
+      numberOfScoresToUse = 3;
+    } else if (rounds.length >= 3) {
+      numberOfScoresToUse = 2;
+    }
+
+    // Ta de beste differentialene
+    const bestDifferentials = sortedDifferentials.slice(0, numberOfScoresToUse);
+    const averageDifferential =
+      bestDifferentials.reduce((sum, diff) => sum + diff, 0) / bestDifferentials.length;
+
+    // Handicap Index = gjennomsnitt av beste differentials (avrundet til 1 desimal)
+    const newHandicap = Math.round(averageDifferential * 10) / 10;
+
+    // Oppdater brukerens handicap
+    await dynamodb
+      .update({
+        TableName: TABLES.USERS,
+        Key: { id: userId },
+        UpdateExpression: 'set handicap = :handicap, updatedAt = :updatedAt',
+        ExpressionAttributeValues: {
+          ':handicap': Math.max(0, Math.min(54, newHandicap)), // Clamp mellom 0 og 54
+          ':updatedAt': new Date().toISOString(),
+        },
+      })
+      .promise();
+
+    console.log(
+      `Updated handicap for user ${userId}: ${newHandicap} (from ${rounds.length} rounds)`
+    );
+  } catch (error) {
+    console.error('Error updating handicap:', error);
+    // Ikke kast feil - handicap-oppdatering skal ikke stoppe runde-lagring
+  }
+};
+
+/**
  * GET /api/rounds
  * Hent alle runder for innlogget bruker
  */
@@ -85,13 +174,32 @@ export const createRound = async (req: Request, res: Response): Promise<void> =>
     const userId = req.user?.userId;
     const roundData = req.body as CreateRoundInput;
 
+    // Hent course fra database for å få rating og slope
+    const courseResult = await dynamodb
+      .get({
+        TableName: TABLES.COURSES,
+        Key: { id: roundData.courseId },
+      })
+      .promise();
+
+    if (!courseResult.Item) {
+      res.status(404).json({ message: 'Golfbane ikke funnet' });
+      return;
+    }
+
+    const course = courseResult.Item;
+    let courseRating = course.rating[roundData.teeColor];
+    let slopeRating = course.slope[roundData.teeColor];
+
+    // For 9-hulls runder: juster rating og slope (delt på 2)
+    if (roundData.numberOfHoles === 9) {
+      courseRating = courseRating / 2;
+      slopeRating = slopeRating / 2;
+    }
+
     // Beregn total score og par
     const totalScore = roundData.holes.reduce((sum, hole) => sum + hole.strokes, 0);
     const totalPar = roundData.holes.reduce((sum, hole) => sum + hole.par, 0);
-
-    // TODO: Hent faktisk course rating og slope fra database
-    const courseRating = 72.0;
-    const slopeRating = 130;
 
     const scoreDifferential = calculateScoreDifferential(totalScore, courseRating, slopeRating);
 
@@ -116,7 +224,10 @@ export const createRound = async (req: Request, res: Response): Promise<void> =>
       })
       .promise();
 
-    // TODO: Oppdater brukerens handicap basert på nye runder
+    // Oppdater brukerens handicap basert på WHS
+    if (userId) {
+      await updateUserHandicap(userId);
+    }
 
     res.status(201).json(round);
   } catch (error) {

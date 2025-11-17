@@ -34,9 +34,11 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
     }
 
     const token = authHeader.substring(7);
+
     const secret = process.env.JWT_SECRET;
 
     if (!secret) {
+      console.error('❌ JWT_SECRET not set!');
       throw new Error('JWT_SECRET er ikke satt');
     }
 
@@ -44,6 +46,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
     req.user = decoded;
     next();
   } catch (error) {
+    console.error('❌ Token verification failed:', error);
     res.status(401).json({ message: 'Ugyldig eller utløpt token' });
   }
 };

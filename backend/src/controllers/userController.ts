@@ -152,3 +152,61 @@ export const getHandicapHistory = async (req: Request, res: Response): Promise<v
     res.status(500).json({ message: 'Kunne ikke hente handicap-historikk' });
   }
 };
+
+/**
+ * GET /api/users/search?q=query
+ * Søk etter brukere (for å finne medspillere)
+ */
+export const searchUsers = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const query = ((req.query.q as string) || '').toLowerCase().trim();
+
+    if (!query || query.length < 2) {
+      res.status(400).json({ message: 'Søkeord må være minst 2 tegn' });
+      return;
+    }
+
+    // Hent alle brukere (i produksjon bør dette optimaliseres med en søkeindeks)
+    const result = await dynamodb
+      .scan({
+        TableName: TABLES.USERS,
+        ProjectionExpression: 'id, firstName, lastName, email, handicap, profileImageUrl',
+      })
+      .promise();
+
+    const users = result.Items || [];
+
+    // Filtrer brukere basert på søkeord
+    const filteredUsers = users.filter(user => {
+      const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+      const email = user.email.toLowerCase();
+      return fullName.includes(query) || email.includes(query);
+    });
+
+    // Sorter etter relevans (match i navn kommer først)
+    const sortedUsers = filteredUsers.sort((a, b) => {
+      const aName = `${a.firstName} ${a.lastName}`.toLowerCase();
+      const bName = `${b.firstName} ${b.lastName}`.toLowerCase();
+      const aStartsWith = aName.startsWith(query);
+      const bStartsWith = bName.startsWith(query);
+      if (aStartsWith && !bStartsWith) return -1;
+      if (!aStartsWith && bStartsWith) return 1;
+      return aName.localeCompare(bName);
+    });
+
+    // Begrens til 20 resultater
+    const limitedResults = sortedUsers.slice(0, 20).map(user => ({
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      handicap: user.handicap,
+      profileImageUrl: user.profileImageUrl,
+    }));
+
+    res.json(limitedResults);
+  } catch (error) {
+    console.error('Search users error:', error);
+    res.status(500).json({ message: 'Kunne ikke søke etter brukere' });
+  }
+};

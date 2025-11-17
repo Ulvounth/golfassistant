@@ -1,5 +1,11 @@
 import { Router } from 'express';
-import { getCourses, getCourse, searchCourses } from '../controllers/courseController';
+import {
+  getCourses,
+  getCourse,
+  searchCourses,
+  createCourse,
+} from '../controllers/courseController';
+import { authenticate } from '../middleware/authenticate';
 
 const router = Router();
 
@@ -20,5 +26,11 @@ router.get('/search', searchCourses);
  * Hent en spesifikk golfbane
  */
 router.get('/:id', getCourse);
+
+/**
+ * POST /api/courses
+ * Opprett ny golfbane (krever autentisering)
+ */
+router.post('/', authenticate, createCourse);
 
 export default router;

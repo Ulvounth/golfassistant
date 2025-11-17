@@ -7,6 +7,15 @@ export interface UpdateProfileData {
   bio?: string;
 }
 
+export interface UserSearchResult {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  handicap: number;
+  profileImageUrl?: string;
+}
+
 /**
  * Service for brukerprofilhåndtering
  */
@@ -47,6 +56,16 @@ export const userService = {
    */
   async getHandicapHistory(): Promise<{ date: string; handicap: number }[]> {
     const response = await api.get<{ date: string; handicap: number }[]>('/user/handicap-history');
+    return response.data;
+  },
+
+  /**
+   * Søker etter brukere
+   */
+  async searchUsers(query: string): Promise<UserSearchResult[]> {
+    const response = await api.get<UserSearchResult[]>('/user/search', {
+      params: { q: query },
+    });
     return response.data;
   },
 };

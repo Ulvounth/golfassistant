@@ -40,6 +40,7 @@ export const createRoundSchema = z.object({
     errorMap: () => ({ message: 'Antall hull må være 9 eller 18' }),
   }),
   date: z.string().datetime('Ugyldig datoformat'),
+  players: z.array(z.string()).optional().default([]), // Array of userIds
   holes: z.array(
     z.object({
       holeNumber: z.number().int().min(1).max(18),

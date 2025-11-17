@@ -16,8 +16,8 @@ interface AuthState {
  */
 export const useAuthStore = create<AuthState>(set => ({
   user: null,
-  token: localStorage.getItem('token'),
-  isAuthenticated: !!localStorage.getItem('token'),
+  token: null,
+  isAuthenticated: false,
 
   login: (user, token) => {
     localStorage.setItem('token', token);
@@ -38,13 +38,34 @@ export const useAuthStore = create<AuthState>(set => ({
 }));
 
 // Initialisér brukerdata fra localStorage ved oppstart
+const storedToken = localStorage.getItem('token');
 const storedUser = localStorage.getItem('user');
-if (storedUser) {
+
+if (storedToken && storedUser) {
   try {
     const user = JSON.parse(storedUser);
-    useAuthStore.setState({ user });
+
+    // Sjekk om token er utløpt
+    const payload = JSON.parse(atob(storedToken.split('.')[1]));
+    const expiryTime = payload.exp * 1000;
+    const isExpired = Date.now() >= expiryTime;
+
+    if (isExpired) {
+      // Token er utløpt, clear alt
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    } else {
+      // Token er gyldig, last inn state
+      useAuthStore.setState({ user, token: storedToken, isAuthenticated: true });
+    }
   } catch (error) {
-    console.error('Failed to parse user from localStorage:', error);
+    console.error('Failed to parse stored auth data:', error);
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
   }
 }
+
+// Lytt til logout-event fra axios interceptor
+window.addEventListener('auth-logout', () => {
+  useAuthStore.getState().logout();
+});

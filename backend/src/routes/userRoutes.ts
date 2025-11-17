@@ -5,6 +5,7 @@ import {
   updateProfile,
   uploadProfileImage,
   getHandicapHistory,
+  searchUsers,
 } from '../controllers/userController';
 import { validate } from '../middleware/validate';
 import { updateProfileSchema } from '../validators/schemas';
@@ -15,6 +16,12 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 // Alle ruter krever autentisering
 router.use(authenticate);
+
+/**
+ * GET /api/user/search?q=query
+ * Søk etter brukere (må være før /profile for å ikke matche :id pattern)
+ */
+router.get('/search', searchUsers);
 
 /**
  * GET /api/user/profile

@@ -27,10 +27,18 @@ api.interceptors.response.use(
   response => response,
   error => {
     if (error.response?.status === 401) {
-      // Redirect til login hvis token er ugyldig
+      // Lagre current path for redirect etter login
+      const currentPath = window.location.pathname;
+
+      // Clear auth data direkte (unngå circular dependency)
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+
+      // Trigge en custom event for å oppdatere authStore
+      window.dispatchEvent(new Event('auth-logout'));
+
+      // Redirect til login med current path
+      window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
     }
     return Promise.reject(error);
   }
