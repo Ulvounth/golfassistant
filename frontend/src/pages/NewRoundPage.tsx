@@ -210,7 +210,9 @@ export function NewRoundPage() {
 
       const playerCount = selectedPlayers.length + 1; // +1 for yourself
       alert(
-        `✅ Round saved successfully! ${playerCount} ${playerCount === 1 ? 'player' : 'players'} registered.`
+        `✅ Round saved successfully! ${playerCount} ${
+          playerCount === 1 ? 'player' : 'players'
+        } registered.`
       );
       navigate('/profile');
     } catch (error) {
