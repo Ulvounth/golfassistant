@@ -11,6 +11,20 @@ export interface CreateRoundData {
   holes: HoleScore[];
 }
 
+export interface PlayerScores {
+  playerId: string;
+  holes: HoleScore[];
+}
+
+export interface CreateMultiPlayerRoundData {
+  courseId: string;
+  courseName: string;
+  teeColor: 'white' | 'yellow' | 'blue' | 'red';
+  numberOfHoles: 9 | 18;
+  date: string;
+  playerScores: PlayerScores[];
+}
+
 /**
  * Service for håndtering av golfrunder
  */
@@ -36,6 +50,19 @@ export const roundService = {
    */
   async createRound(data: CreateRoundData): Promise<GolfRound> {
     const response = await api.post<GolfRound>('/rounds', data);
+    return response.data;
+  },
+
+  /**
+   * Oppretter runde for flere spillere samtidig
+   */
+  async createMultiPlayerRound(
+    data: CreateMultiPlayerRoundData
+  ): Promise<{ message: string; rounds: GolfRound[] }> {
+    const response = await api.post<{ message: string; rounds: GolfRound[] }>(
+      '/rounds/multi-player',
+      data
+    );
     return response.data;
   },
 

@@ -32,6 +32,12 @@ export class ApiStack extends cdk.Stack {
 
     // Lambda function for API
     // I produksjon: splitt dette i flere Lambda functions per route
+    const logGroup = new logs.LogGroup(this, 'ApiHandlerLogGroup', {
+      logGroupName: `/aws/lambda/golftracker-api-handler`,
+      retention: logs.RetentionDays.ONE_WEEK,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
     const apiHandler = new lambda.Function(this, 'ApiHandler', {
       runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'index.handler',
@@ -46,7 +52,7 @@ export class ApiStack extends cdk.Stack {
       },
       timeout: cdk.Duration.seconds(30),
       memorySize: 512,
-      logRetention: logs.RetentionDays.ONE_WEEK,
+      logGroup: logGroup,
     });
 
     // Gi Lambda tilgang til DynamoDB tabeller

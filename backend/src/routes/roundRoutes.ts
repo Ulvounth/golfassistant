@@ -4,11 +4,12 @@ import {
   getRounds,
   getRound,
   createRound,
+  createMultiPlayerRound,
   updateRound,
   deleteRound,
 } from '../controllers/roundController';
 import { validate } from '../middleware/validate';
-import { createRoundSchema } from '../validators/schemas';
+import { createRoundSchema, createMultiPlayerRoundSchema } from '../validators/schemas';
 
 const router = Router();
 
@@ -32,6 +33,12 @@ router.get('/:id', getRound);
  * Opprett ny runde
  */
 router.post('/', validate(createRoundSchema), createRound);
+
+/**
+ * POST /api/rounds/multi-player
+ * Opprett runde for flere spillere samtidig
+ */
+router.post('/multi-player', validate(createMultiPlayerRoundSchema), createMultiPlayerRound);
 
 /**
  * PUT /api/rounds/:id

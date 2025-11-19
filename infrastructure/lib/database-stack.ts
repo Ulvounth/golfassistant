@@ -19,7 +19,7 @@ export class DatabaseStack extends cdk.Stack {
       partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.RETAIN, // Behold data ved sletting av stack
-      pointInTimeRecovery: true,
+      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
     });
 
     // Global Secondary Index for å søke etter e-post
@@ -35,7 +35,7 @@ export class DatabaseStack extends cdk.Stack {
       partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.RETAIN,
-      pointInTimeRecovery: true,
+      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
     });
 
     // Global Secondary Index for å hente runder per bruker sortert etter dato

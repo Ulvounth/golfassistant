@@ -26,7 +26,8 @@ export function NewRoundPage() {
   const [playerSearchResults, setPlayerSearchResults] = useState<UserSearchResult[]>([]);
   const [searchingPlayers, setSearchingPlayers] = useState(false);
   const [step, setStep] = useState(1); // 1: Select course/details, 2: Enter scores
-  const [holeScores, setHoleScores] = useState<HoleScore[]>([]);
+  const [holeScores, setHoleScores] = useState<HoleScore[]>([]); // Your own scores
+  const [playerScores, setPlayerScores] = useState<Record<string, HoleScore[]>>({}); // Scores for other players: playerId -> HoleScore[]
   const [saving, setSaving] = useState(false);
   const [isAddCourseModalOpen, setIsAddCourseModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -82,7 +83,7 @@ export function NewRoundPage() {
     const endHole = startHole + numberOfHoles;
     const holesToPlay = selectedCourse.holes.slice(startHole, endHole);
 
-    // Initialize hole scores
+    // Initialize hole scores for yourself
     const initialScores: HoleScore[] = holesToPlay.map(hole => ({
       holeNumber: hole.holeNumber,
       par: hole.par,
@@ -93,6 +94,21 @@ export function NewRoundPage() {
     }));
 
     setHoleScores(initialScores);
+
+    // Initialize hole scores for other players
+    const initialPlayerScores: Record<string, HoleScore[]> = {};
+    selectedPlayers.forEach(player => {
+      initialPlayerScores[player.id] = holesToPlay.map(hole => ({
+        holeNumber: hole.holeNumber,
+        par: hole.par,
+        strokes: hole.par, // Default to par
+        fairwayHit: false,
+        greenInRegulation: false,
+        putts: 0,
+      }));
+    });
+    setPlayerScores(initialPlayerScores);
+
     setStep(2);
   };
 
@@ -100,6 +116,19 @@ export function NewRoundPage() {
     const newScores = [...holeScores];
     newScores[index] = { ...newScores[index], [field]: value };
     setHoleScores(newScores);
+  };
+
+  const handlePlayerScoreChange = (
+    playerId: string,
+    index: number,
+    field: keyof HoleScore,
+    value: number | boolean
+  ) => {
+    const newPlayerScores = { ...playerScores };
+    const scores = [...(newPlayerScores[playerId] || [])];
+    scores[index] = { ...scores[index], [field]: value };
+    newPlayerScores[playerId] = scores;
+    setPlayerScores(newPlayerScores);
   };
 
   const handlePlayerSearch = async (query: string) => {
@@ -141,22 +170,37 @@ export function NewRoundPage() {
     const selectedCourse = courses.find(c => c.id === selectedCourseId);
     if (!selectedCourse) return;
 
+    const currentUserId = useAuthStore.getState().user?.id;
+    if (!currentUserId) return;
+
     setSaving(true);
     try {
       // Kombiner dato med tidspunkt for ISO string
       const dateTime = new Date(roundDate + 'T12:00:00.000Z').toISOString();
 
-      await roundService.createRound({
+      // Prepare player scores array including yourself
+      const playerScoresData = [
+        {
+          playerId: currentUserId,
+          holes: holeScores,
+        },
+        ...selectedPlayers.map(player => ({
+          playerId: player.id,
+          holes: playerScores[player.id] || [],
+        })),
+      ];
+
+      // Use multi-player API to create rounds for all players
+      await roundService.createMultiPlayerRound({
         courseId: selectedCourseId,
         courseName: selectedCourse.name,
         teeColor: selectedTee,
         numberOfHoles,
         date: dateTime,
-        players: selectedPlayers.map(p => p.id), // Extract just the IDs
-        holes: holeScores,
+        playerScores: playerScoresData,
       });
 
-      // Hent oppdatert brukerdata (med nytt handicap)
+      // Refresh user data (with new handicap)
       try {
         const userData = await userService.getProfile();
         useAuthStore.getState().updateUser(userData);
@@ -164,8 +208,11 @@ export function NewRoundPage() {
         console.error('Failed to refresh user data:', error);
       }
 
-      alert('✅ Round saved!');
-      navigate('/profile'); // Navigate to profile/rounds page
+      const playerCount = selectedPlayers.length + 1; // +1 for yourself
+      alert(
+        `✅ Round saved successfully! ${playerCount} ${playerCount === 1 ? 'player' : 'players'} registered.`
+      );
+      navigate('/profile');
     } catch (error) {
       console.error('Failed to save round:', error);
       alert('❌ Failed to save round. Please try again.');
@@ -424,6 +471,24 @@ export function NewRoundPage() {
                     </div>
                   )}
 
+                  {/* No results message */}
+                  {!searchingPlayers &&
+                    playerSearchQuery.length >= 2 &&
+                    playerSearchResults.length === 0 && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-orange-200 rounded-lg shadow-lg p-4">
+                        <div className="flex items-start gap-3">
+                          <span className="text-orange-500 text-lg">⚠️</span>
+                          <div>
+                            <p className="font-medium text-gray-900 mb-1">No users found</p>
+                            <p className="text-sm text-gray-600">
+                              The player "{playerSearchQuery}" is not registered in the system. Only
+                              registered users can be added to a round.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                   {searchingPlayers && (
                     <div className="absolute right-3 top-3 text-gray-400">Searching...</div>
                   )}
@@ -473,17 +538,32 @@ export function NewRoundPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b-2">
-                  <th className="text-left py-2 px-2">Hole</th>
-                  <th className="text-center py-2 px-2">Par</th>
-                  <th className="text-center py-2 px-2">Strokes</th>
+                  <th className="text-left py-2 px-2 sticky left-0 bg-white z-10">Hole</th>
+                  <th className="text-center py-2 px-2 sticky left-[60px] bg-white z-10">Par</th>
+                  <th className="text-center py-2 px-2 bg-blue-50">
+                    You
+                    <div className="text-xs font-normal text-gray-600">
+                      {useAuthStore.getState().user?.firstName}
+                    </div>
+                  </th>
+                  {selectedPlayers.map(player => (
+                    <th key={player.id} className="text-center py-2 px-2 bg-green-50">
+                      {player.firstName}
+                      <div className="text-xs font-normal text-gray-600">{player.lastName}</div>
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {holeScores.map((hole, index) => (
                   <tr key={hole.holeNumber} className="border-b">
-                    <td className="py-2 px-2 font-semibold">Hole {hole.holeNumber}</td>
-                    <td className="py-2 px-2 text-center text-gray-600">{hole.par}</td>
-                    <td className="py-2 px-2">
+                    <td className="py-2 px-2 font-semibold sticky left-0 bg-white">
+                      Hole {hole.holeNumber}
+                    </td>
+                    <td className="py-2 px-2 text-center text-gray-600 sticky left-[60px] bg-white">
+                      {hole.par}
+                    </td>
+                    <td className="py-2 px-2 bg-blue-50/30">
                       <input
                         type="number"
                         min={1}
@@ -495,16 +575,35 @@ export function NewRoundPage() {
                         }
                       />
                     </td>
+                    {selectedPlayers.map(player => (
+                      <td key={player.id} className="py-2 px-2 bg-green-50/30">
+                        <input
+                          type="number"
+                          min={1}
+                          max={15}
+                          className="w-20 px-2 py-1 border rounded text-center mx-auto block"
+                          value={playerScores[player.id]?.[index]?.strokes || 0}
+                          onChange={e =>
+                            handlePlayerScoreChange(
+                              player.id,
+                              index,
+                              'strokes',
+                              parseInt(e.target.value) || 0
+                            )
+                          }
+                        />
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
               <tfoot>
                 <tr className="border-t-2 font-semibold">
-                  <td className="py-3 px-2">Total</td>
-                  <td className="py-3 px-2 text-center">
+                  <td className="py-3 px-2 sticky left-0 bg-white">Total</td>
+                  <td className="py-3 px-2 text-center sticky left-[60px] bg-white">
                     {holeScores.reduce((sum, h) => sum + h.par, 0)}
                   </td>
-                  <td className="py-3 px-2 text-center">
+                  <td className="py-3 px-2 text-center bg-blue-50/30">
                     <div className="flex items-center justify-center gap-2">
                       <span>{holeScores.reduce((sum, h) => sum + h.strokes, 0)}</span>
                       <span className="text-sm text-gray-600">
@@ -520,6 +619,23 @@ export function NewRoundPage() {
                       </span>
                     </div>
                   </td>
+                  {selectedPlayers.map(player => {
+                    const scores = playerScores[player.id] || [];
+                    const totalStrokes = scores.reduce((sum, h) => sum + h.strokes, 0);
+                    const totalPar = scores.reduce((sum, h) => sum + h.par, 0);
+                    const diff = totalStrokes - totalPar;
+                    return (
+                      <td key={player.id} className="py-3 px-2 text-center bg-green-50/30">
+                        <div className="flex items-center justify-center gap-2">
+                          <span>{totalStrokes}</span>
+                          <span className="text-sm text-gray-600">
+                            ({diff > 0 ? '+' : ''}
+                            {diff})
+                          </span>
+                        </div>
+                      </td>
+                    );
+                  })}
                 </tr>
               </tfoot>
             </table>
@@ -527,7 +643,13 @@ export function NewRoundPage() {
 
           <div className="mt-6 p-3 bg-blue-50 rounded-lg text-sm text-gray-700">
             <p>
-              <strong>Tip:</strong> Enter the number of strokes you took on each hole.
+              <strong>Tip:</strong> Enter the number of strokes each player took on each hole.
+              {selectedPlayers.length > 0 && (
+                <span className="block mt-2 text-green-700">
+                  ✅ All players' scores will be saved and their handicaps will be updated
+                  automatically.
+                </span>
+              )}
             </p>
           </div>
 

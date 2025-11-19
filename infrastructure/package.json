@@ -17,14 +17,14 @@
   "devDependencies": {
     "@types/node": "^20.10.5",
     "@types/uuid": "^9.0.7",
-    "typescript": "^5.3.3",
     "aws-cdk": "^2.115.0",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
   },
   "dependencies": {
-    "aws-cdk-lib": "^2.115.0",
-    "constructs": "^10.3.0",
+    "aws-cdk-lib": "^2.225.0",
     "aws-sdk": "^2.1498.0",
+    "constructs": "^10.3.0",
     "uuid": "^9.0.1"
   }
 }

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { dynamodb, TABLES } from '../config/aws';
-import { CreateRoundInput } from '../validators/schemas';
+import { CreateRoundInput, CreateMultiPlayerRoundInput } from '../validators/schemas';
 
 /**
  * Beregn score differential for handicap-beregning
@@ -232,6 +232,118 @@ export const createRound = async (req: Request, res: Response): Promise<void> =>
     res.status(201).json(round);
   } catch (error) {
     console.error('Create round error:', error);
+    res.status(500).json({ message: 'Kunne ikke opprette runde' });
+  }
+};
+
+/**
+ * POST /api/rounds/multi-player
+ * Opprett runde for flere spillere samtidig
+ * Dette oppretter én runde per spiller med deres individuelle scores
+ */
+export const createMultiPlayerRound = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const requestingUserId = req.user?.userId;
+    const roundData = req.body as CreateMultiPlayerRoundInput;
+
+    // Verify that the requesting user is one of the players
+    const playerIds = roundData.playerScores.map(ps => ps.playerId);
+    if (!playerIds.includes(requestingUserId!)) {
+      res.status(403).json({ message: 'Du må være en av spillerne i runden' });
+      return;
+    }
+
+    // Verify all players exist
+    const playerChecks = await Promise.all(
+      playerIds.map(playerId =>
+        dynamodb
+          .get({
+            TableName: TABLES.USERS,
+            Key: { id: playerId },
+          })
+          .promise()
+      )
+    );
+
+    const missingPlayers = playerChecks.filter(result => !result.Item);
+    if (missingPlayers.length > 0) {
+      res.status(400).json({ message: 'En eller flere spillere finnes ikke i systemet' });
+      return;
+    }
+
+    // Hent course fra database for å få rating og slope
+    const courseResult = await dynamodb
+      .get({
+        TableName: TABLES.COURSES,
+        Key: { id: roundData.courseId },
+      })
+      .promise();
+
+    if (!courseResult.Item) {
+      res.status(404).json({ message: 'Golfbane ikke funnet' });
+      return;
+    }
+
+    const course = courseResult.Item;
+    let courseRating = course.rating[roundData.teeColor];
+    let slopeRating = course.slope[roundData.teeColor];
+
+    // For 9-hulls runder: juster rating og slope (delt på 2)
+    if (roundData.numberOfHoles === 9) {
+      courseRating = courseRating / 2;
+      slopeRating = slopeRating / 2;
+    }
+
+    const timestamp = new Date().toISOString();
+    const createdRounds = [];
+
+    // Create a round for each player
+    for (const playerScore of roundData.playerScores) {
+      const totalScore = playerScore.holes.reduce((sum, hole) => sum + hole.strokes, 0);
+      const totalPar = playerScore.holes.reduce((sum, hole) => sum + hole.par, 0);
+      const scoreDifferential = calculateScoreDifferential(totalScore, courseRating, slopeRating);
+
+      const roundId = uuidv4();
+
+      // Get list of other players (excluding current player)
+      const otherPlayers = playerIds.filter(id => id !== playerScore.playerId);
+
+      const round = {
+        id: roundId,
+        userId: playerScore.playerId,
+        courseId: roundData.courseId,
+        courseName: roundData.courseName,
+        teeColor: roundData.teeColor,
+        numberOfHoles: roundData.numberOfHoles,
+        date: roundData.date,
+        players: otherPlayers, // Other players in the round
+        holes: playerScore.holes,
+        totalScore,
+        totalPar,
+        scoreDifferential,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+
+      await dynamodb
+        .put({
+          TableName: TABLES.ROUNDS,
+          Item: round,
+        })
+        .promise();
+
+      createdRounds.push(round);
+
+      // Update handicap for this player
+      await updateUserHandicap(playerScore.playerId);
+    }
+
+    res.status(201).json({
+      message: `Successfully created ${createdRounds.length} rounds`,
+      rounds: createdRounds,
+    });
+  } catch (error) {
+    console.error('Create multi-player round error:', error);
     res.status(500).json({ message: 'Kunne ikke opprette runde' });
   }
 };

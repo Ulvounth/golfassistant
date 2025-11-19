@@ -28,7 +28,27 @@ export const updateProfileSchema = z.object({
 });
 
 /**
- * Validering for ny golfrunde
+ * Validering for hole score
+ */
+const holeScoreSchema = z.object({
+  holeNumber: z.number().int().min(1).max(18),
+  par: z.number().int().min(3).max(6),
+  strokes: z.number().int().min(1),
+  fairwayHit: z.boolean(),
+  greenInRegulation: z.boolean(),
+  putts: z.number().int().min(0),
+});
+
+/**
+ * Validering for én spillers scores
+ */
+const playerScoresSchema = z.object({
+  playerId: z.string().uuid('Ugyldig playerId'),
+  holes: z.array(holeScoreSchema),
+});
+
+/**
+ * Validering for ny golfrunde (legacy - single player)
  */
 export const createRoundSchema = z.object({
   courseId: z.string().uuid('Ugyldig courseId'),
@@ -41,19 +61,27 @@ export const createRoundSchema = z.object({
   }),
   date: z.string().datetime('Ugyldig datoformat'),
   players: z.array(z.string()).optional().default([]), // Array of userIds
-  holes: z.array(
-    z.object({
-      holeNumber: z.number().int().min(1).max(18),
-      par: z.number().int().min(3).max(6),
-      strokes: z.number().int().min(1),
-      fairwayHit: z.boolean(),
-      greenInRegulation: z.boolean(),
-      putts: z.number().int().min(0),
-    })
-  ),
+  holes: z.array(holeScoreSchema),
+});
+
+/**
+ * Validering for ny golfrunde med flere spillere
+ */
+export const createMultiPlayerRoundSchema = z.object({
+  courseId: z.string().uuid('Ugyldig courseId'),
+  courseName: z.string().min(1, 'Banenavn er påkrevd'),
+  teeColor: z.enum(['white', 'yellow', 'blue', 'red'], {
+    errorMap: () => ({ message: 'Ugyldig tee-farge' }),
+  }),
+  numberOfHoles: z.union([z.literal(9), z.literal(18)], {
+    errorMap: () => ({ message: 'Antall hull må være 9 eller 18' }),
+  }),
+  date: z.string().datetime('Ugyldig datoformat'),
+  playerScores: z.array(playerScoresSchema).min(1, 'Minst én spillers score må oppgis'),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type CreateRoundInput = z.infer<typeof createRoundSchema>;
+export type CreateMultiPlayerRoundInput = z.infer<typeof createMultiPlayerRoundSchema>;
