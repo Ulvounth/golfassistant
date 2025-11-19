@@ -43,19 +43,19 @@ export function HomePage() {
           {/* Main Hero Content */}
           <div className="lg:col-span-2 text-center lg:text-left">
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-              Din digitale <span className="text-primary-600">golfassistent</span>
+              Your digital <span className="text-primary-600">golf assistant</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8">
-              Registrer runder, følg handicap, og konkurrer med venner. GolfTracker gjør det enkelt
-              å holde oversikt over din golfprogresjon.
+              Track rounds, follow your handicap, and compete with friends. GolfTracker makes it
+              easy to keep track of your golf progression.
             </p>
             {!isAuthenticated && (
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link to="/register" className="btn-primary text-lg px-8 py-3">
-                  Kom i gang gratis
+                  Get started free
                 </Link>
                 <Link to="/login" className="btn-outline text-lg px-8 py-3">
-                  Logg inn
+                  Log in
                 </Link>
               </div>
             )}
@@ -66,13 +66,13 @@ export function HomePage() {
             <div className="card bg-white shadow-lg">
               <div className="flex items-center gap-2 mb-4">
                 <Trophy className="text-yellow-600" size={24} />
-                <h3 className="text-xl font-bold">Topp spillere</h3>
+                <h3 className="text-xl font-bold">Top Players</h3>
               </div>
 
               {loadingLeaderboard ? (
-                <p className="text-gray-600 text-sm">Laster...</p>
+                <p className="text-gray-600 text-sm">Loading...</p>
               ) : topPlayers.length === 0 ? (
-                <p className="text-gray-600 text-sm">Ingen spillere ennå</p>
+                <p className="text-gray-600 text-sm">No players yet</p>
               ) : (
                 <div className="space-y-3">
                   {topPlayers.map((player, index) => (
@@ -89,7 +89,7 @@ export function HomePage() {
                             {player.firstName} {player.lastName.charAt(0)}.
                           </p>
                           <p className="text-xs text-gray-600">
-                            {player.roundsPlayed} {player.roundsPlayed === 1 ? 'runde' : 'runder'}
+                            {player.roundsPlayed} {player.roundsPlayed === 1 ? 'round' : 'rounds'}
                           </p>
                         </div>
                       </div>
@@ -109,7 +109,7 @@ export function HomePage() {
                   to={isAuthenticated ? '/leaderboard' : '/register'}
                   className="block mt-4 text-center text-primary-600 hover:underline text-sm font-medium"
                 >
-                  {isAuthenticated ? 'Se full leaderboard →' : 'Registrer deg for å konkurrere →'}
+                  {isAuthenticated ? 'View full leaderboard →' : 'Register to compete →'}
                 </Link>
               )}
             </div>
@@ -119,15 +119,15 @@ export function HomePage() {
 
       {/* Features */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <h2 className="text-3xl font-bold text-center mb-12">Funksjoner</h2>
+        <h2 className="text-3xl font-bold text-center mb-12">Features</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div className="card text-center">
             <div className="flex justify-center mb-4">
               <TrendingUp className="text-primary-600" size={48} />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Automatisk handicap</h3>
+            <h3 className="text-xl font-semibold mb-2">Automatic Handicap</h3>
             <p className="text-gray-600">
-              Appen beregner automatisk handicap basert på dine registrerte runder.
+              The app automatically calculates your handicap based on your registered rounds.
             </p>
           </div>
 
@@ -135,9 +135,9 @@ export function HomePage() {
             <div className="flex justify-center mb-4">
               <Target className="text-primary-600" size={48} />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Detaljert statistikk</h3>
+            <h3 className="text-xl font-semibold mb-2">Detailed Statistics</h3>
             <p className="text-gray-600">
-              Registrer score per hull, fairways, greens in regulation og putter.
+              Track score per hole, fairways, greens in regulation, and putts.
             </p>
           </div>
 
@@ -147,7 +147,7 @@ export function HomePage() {
             </div>
             <h3 className="text-xl font-semibold mb-2">Leaderboard</h3>
             <p className="text-gray-600">
-              Se hvordan du rangerer mot andre spillere på leaderboardet.
+              See how you rank against other players on the leaderboard.
             </p>
           </div>
 
@@ -155,9 +155,9 @@ export function HomePage() {
             <div className="flex justify-center mb-4">
               <Award className="text-primary-600" size={48} />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Historikk</h3>
+            <h3 className="text-xl font-semibold mb-2">History</h3>
             <p className="text-gray-600">
-              Full oversikt over alle dine tidligere runder og din utvikling.
+              Complete overview of all your previous rounds and your development.
             </p>
           </div>
         </div>
@@ -167,15 +167,15 @@ export function HomePage() {
       {!isAuthenticated && (
         <section className="bg-primary-600 text-white py-20">
           <div className="max-w-4xl mx-auto px-4 text-center">
-            <h2 className="text-4xl font-bold mb-6">Klar til å starte?</h2>
+            <h2 className="text-4xl font-bold mb-6">Ready to get started?</h2>
             <p className="text-xl mb-8">
-              Bli med i fellesskapet og begynn å spore din golfprogresjon i dag!
+              Join the community and start tracking your golf progression today!
             </p>
             <Link
               to="/register"
               className="bg-white text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-block"
             >
-              Registrer deg nå
+              Sign up now
             </Link>
           </div>
         </section>

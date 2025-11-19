@@ -1,101 +1,27 @@
-# ⛳ GolfTracker
+﻿# GolfTracker
 
-A fullstack golf app for tracking rounds and automatic handicap calculation.
+Track golf rounds and calculate WHS handicap.
 
-## 🚀 Features
+## Tech Stack
 
-- 🔐 User authentication (JWT)
-- ⛳ Round registration (9 or 18 holes)
-- 📊 Automatic handicap calculation
-- 📜 Round history
-- 👤 User profile with profile image
-- 🏆 Leaderboard
+- Frontend: React 18, TypeScript, Vite, Tailwind CSS
+- Backend: Node.js 20, Express, TypeScript
+- Infrastructure: AWS CDK, DynamoDB, S3, Lambda, API Gateway
 
-## 🛠️ Technology
+## Setup
 
-**Frontend:** React 18 + TypeScript + Tailwind CSS  
-**Backend:** Node.js + Express + TypeScript  
-**Database:** AWS DynamoDB  
-**Storage:** AWS S3  
-**Infrastructure:** AWS CDK + CloudFormation
+1. Clone repository
+2. Deploy AWS infrastructure (see infrastructure/README.md)
+3. Configure environment variables
+4. Install dependencies and run
 
-## 📁 Structure
+See backend/README.md and frontend/README.md for details.
 
-```text
-golftracker/
-├── frontend/           # React app
-├── backend/            # Express API
-└── infrastructure/     # AWS CDK
-```
+## Features
 
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Node.js 18+
-- AWS CLI configured with credentials
-- AWS CDK CLI: `npm install -g aws-cdk`
-
-### 1. Clone and Install
-
-```bash
-git clone https://github.com/Ulvounth/golftracker.git
-cd golftracker
-
-# Install dependencies
-cd frontend && npm install
-cd ../backend && npm install
-cd ../infrastructure && npm install
-```
-
-### 2. Setup AWS
-
-```bash
-# Configure AWS CLI
-aws configure
-
-# Deploy infrastructure (DynamoDB, S3, API Gateway)
-cd infrastructure
-npx cdk bootstrap
-npx cdk deploy --all
-```
-
-### 3. Run Locally
-
-**Backend:**
-
-```bash
-cd backend
-npm run dev  # Starts on port 3001
-```
-
-**Frontend:**
-
-```bash
-cd frontend
-npm run dev  # Starts on port 3000
-```
-
-Open <http://localhost:3000> in your browser! 🎉
-
-## 🐳 With Docker
-
-```bash
-# Development with hot reload
-docker-compose -f docker-compose.dev.yml up
-
-# Production
-docker-compose up
-```
-
-## 📚 More Info
-
-See README in each folder for details:
-
-- [Backend README](./backend/README.md)
-- [Frontend README](./frontend/README.md)
-- [Infrastructure README](./infrastructure/README.md)
-
-## 👤 Author
-
-Ulvounth - GitHub: [@Ulvounth](https://github.com/Ulvounth)
+- User authentication
+- Round registration (18-hole and 9-hole)
+- Course management
+- WHS handicap calculation
+- Leaderboard
+- Profile with statistics

@@ -35,10 +35,10 @@ export function Navbar() {
                   Dashboard
                 </Link>
                 <Link to="/new-round" className="text-gray-700 hover:text-primary-600 px-3 py-2">
-                  Ny runde
+                  New Round
                 </Link>
                 <Link to="/history" className="text-gray-700 hover:text-primary-600 px-3 py-2">
-                  Historikk
+                  History
                 </Link>
                 <Link to="/leaderboard" className="text-gray-700 hover:text-primary-600 px-3 py-2">
                   Leaderboard
@@ -55,16 +55,16 @@ export function Navbar() {
                   className="flex items-center space-x-2 text-red-600 hover:text-red-700 px-3 py-2"
                 >
                   <LogOut size={20} />
-                  <span>Logg ut</span>
+                  <span>Log out</span>
                 </button>
               </>
             ) : (
               <>
                 <Link to="/login" className="text-gray-700 hover:text-primary-600 px-3 py-2">
-                  Logg inn
+                  Log in
                 </Link>
                 <Link to="/register" className="btn-primary">
-                  Registrer deg
+                  Sign up
                 </Link>
               </>
             )}
@@ -100,14 +100,14 @@ export function Navbar() {
                   className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Ny runde
+                  New Round
                 </Link>
                 <Link
                   to="/history"
                   className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Historikk
+                  History
                 </Link>
                 <Link
                   to="/leaderboard"
@@ -121,7 +121,7 @@ export function Navbar() {
                   className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Profil
+                  Profile
                 </Link>
                 <button
                   onClick={() => {
@@ -130,7 +130,7 @@ export function Navbar() {
                   }}
                   className="block w-full text-left px-3 py-2 text-red-600 hover:bg-gray-100 rounded"
                 >
-                  Logg ut
+                  Log out
                 </button>
               </>
             ) : (
@@ -140,14 +140,14 @@ export function Navbar() {
                   className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Logg inn
+                  Log in
                 </Link>
                 <Link
                   to="/register"
                   className="block px-3 py-2 text-primary-600 hover:bg-gray-100 rounded"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Registrer deg
+                  Sign up
                 </Link>
               </>
             )}

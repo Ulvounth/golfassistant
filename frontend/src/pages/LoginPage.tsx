@@ -29,7 +29,7 @@ export function LoginPage() {
       navigate(redirectTo);
     } catch (err) {
       const error = err as { response?: { data?: { message?: string } } };
-      setError(error.response?.data?.message || 'Innlogging feilet. Prøv igjen.');
+      setError(error.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -39,12 +39,12 @@ export function LoginPage() {
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         <div className="card">
-          <h2 className="text-3xl font-bold text-center mb-8">Logg inn</h2>
+          <h2 className="text-3xl font-bold text-center mb-8">Log In</h2>
 
           {redirectTo !== '/dashboard' && (
             <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg mb-4 text-sm">
-              <p className="font-semibold mb-1">� Ikke bekymre deg!</p>
-              <p>Dataene dine er lagret. Logg inn så kan du fortsette der du slapp.</p>
+              <p className="font-semibold mb-1">💾 Don't worry!</p>
+              <p>Your data is saved. Log in and you can continue where you left off.</p>
             </div>
           )}
 
@@ -53,7 +53,7 @@ export function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                E-post
+                Email
               </label>
               <input
                 id="email"
@@ -62,13 +62,13 @@ export function LoginPage() {
                 className="input"
                 value={formData.email}
                 onChange={e => setFormData({ ...formData, email: e.target.value })}
-                placeholder="din@email.no"
+                placeholder="your@email.com"
               />
             </div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Passord
+                Password
               </label>
               <input
                 id="password"
@@ -82,14 +82,14 @@ export function LoginPage() {
             </div>
 
             <button type="submit" disabled={loading} className="w-full btn-primary">
-              {loading ? 'Logger inn...' : 'Logg inn'}
+              {loading ? 'Logging in...' : 'Log in'}
             </button>
           </form>
 
           <p className="text-center mt-6 text-gray-600">
-            Har du ikke en konto?{' '}
+            Don't have an account?{' '}
             <Link to="/register" className="text-primary-600 hover:text-primary-700 font-medium">
-              Registrer deg her
+              Sign up here
             </Link>
           </p>
         </div>

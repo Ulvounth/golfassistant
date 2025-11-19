@@ -54,7 +54,7 @@ export function ProfilePage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-8">Min profil</h1>
+      <h1 className="text-3xl font-bold mb-8">My Profile</h1>
 
       <div className="card mb-6">
         <div className="flex items-center space-x-6">
@@ -75,15 +75,15 @@ export function ProfilePage() {
       </div>
 
       <div className="card">
-        <h3 className="text-xl font-semibold mb-4">Mine runder</h3>
+        <h3 className="text-xl font-semibold mb-4">My Rounds</h3>
 
         {loading ? (
-          <p className="text-gray-600">Laster runder...</p>
+          <p className="text-gray-600">Loading rounds...</p>
         ) : rounds.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-gray-600 mb-4">Du har ikke registrert noen runder ennå.</p>
+            <p className="text-gray-600 mb-4">You haven't registered any rounds yet.</p>
             <a href="/new-round" className="btn-primary inline-block">
-              Registrer din første runde
+              Register your first round
             </a>
           </div>
         ) : (
@@ -115,20 +115,20 @@ export function ProfilePage() {
 
                 <div className="flex gap-4 text-sm text-gray-600 mt-2">
                   <span>
-                    {round.teeColor === 'white' && '⚪ Hvit'}
-                    {round.teeColor === 'yellow' && '🟡 Gul'}
-                    {round.teeColor === 'blue' && '🔵 Blå'}
-                    {round.teeColor === 'red' && '🔴 Rød'}
+                    {round.teeColor === 'white' && '⚪ White'}
+                    {round.teeColor === 'yellow' && '🟡 Yellow'}
+                    {round.teeColor === 'blue' && '🔵 Blue'}
+                    {round.teeColor === 'red' && '🔴 Red'}
                   </span>
-                  <span>• {round.numberOfHoles} hull</span>
-                  <span>• Differensial: {round.scoreDifferential.toFixed(1)}</span>
+                  <span>• {round.numberOfHoles} holes</span>
+                  <span>• Differential: {round.scoreDifferential.toFixed(1)}</span>
                 </div>
 
                 {round.players && round.players.length > 0 && (
                   <div className="mt-2 pt-2 border-t text-sm text-gray-600">
-                    <span className="font-medium">👥 Spilte med:</span>
+                    <span className="font-medium">👥 Played with:</span>
                     <span className="ml-1">
-                      {round.players.length} {round.players.length === 1 ? 'person' : 'personer'}
+                      {round.players.length} {round.players.length === 1 ? 'person' : 'people'}
                     </span>
                   </div>
                 )}
@@ -138,8 +138,8 @@ export function ProfilePage() {
             {rounds.length >= 20 && (
               <div className="mt-4 p-3 bg-blue-50 rounded-lg text-sm">
                 <p className="text-blue-800">
-                  ℹ️ <strong>WHS Handicap:</strong> Ditt handicap beregnes fra gjennomsnittet av
-                  dine 8 beste score differentials av de siste 20 rundene.
+                  ℹ️ <strong>WHS Handicap:</strong> Your handicap is calculated from the average of
+                  your 8 best score differentials from your last 20 rounds.
                 </p>
               </div>
             )}

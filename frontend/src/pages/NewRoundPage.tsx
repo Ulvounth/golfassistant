@@ -70,7 +70,7 @@ export function NewRoundPage() {
   const handleCourseAdded = (courseId: string, courseName: string) => {
     setSelectedCourseId(courseId);
     loadCourses(); // Refresh course list
-    alert(`✅ Bane "${courseName}" lagt til!`);
+    alert(`✅ Course "${courseName}" added!`);
   };
 
   const handleProceedToScoring = () => {
@@ -164,11 +164,11 @@ export function NewRoundPage() {
         console.error('Failed to refresh user data:', error);
       }
 
-      alert('✅ Runde lagret!');
+      alert('✅ Round saved!');
       navigate('/profile'); // Navigate to profile/rounds page
     } catch (error) {
       console.error('Failed to save round:', error);
-      alert('❌ Kunne ikke lagre runde. Prøv igjen.');
+      alert('❌ Failed to save round. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -176,20 +176,20 @@ export function NewRoundPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-8">Registrer ny runde</h1>
+      <h1 className="text-3xl font-bold mb-8">Register New Round</h1>
 
       {/* Step 1: Course selection and details */}
       {step === 1 && (
         <>
           <div className="card mb-6">
-            <h2 className="text-xl font-semibold mb-4">1. Velg golfbane</h2>
+            <h2 className="text-xl font-semibold mb-4">1. Select Golf Course</h2>
 
             {/* Search */}
             <div className="mb-4">
               <input
                 type="text"
                 className="input"
-                placeholder="Søk etter bane..."
+                placeholder="Search for course..."
                 value={searchQuery}
                 onChange={e => handleSearch(e.target.value)}
               />
@@ -197,18 +197,18 @@ export function NewRoundPage() {
 
             {/* Course list */}
             {loading ? (
-              <p className="text-gray-600">Laster baner...</p>
+              <p className="text-gray-600">Loading courses...</p>
             ) : courses.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-gray-600 mb-4">
-                  {searchQuery ? 'Ingen baner funnet' : 'Ingen baner i databasen ennå'}
+                  {searchQuery ? 'No courses found' : 'No courses in database yet'}
                 </p>
                 <button
                   onClick={() => setIsAddCourseModalOpen(true)}
                   className="btn-primary inline-flex items-center gap-2"
                 >
                   <PlusCircle size={20} />
-                  Legg til din første bane
+                  Add your first course
                 </button>
               </div>
             ) : (
@@ -242,7 +242,7 @@ export function NewRoundPage() {
                   className="btn-outline inline-flex items-center gap-2 w-full justify-center"
                 >
                   <PlusCircle size={20} />
-                  Banen din er ikke i listen? Legg den til her
+                  Course not in the list? Add it here
                 </button>
               </>
             )}
@@ -250,12 +250,12 @@ export function NewRoundPage() {
 
           {selectedCourseId && (
             <div className="card">
-              <h2 className="text-xl font-semibold mb-4">2. Velg runde-detaljer</h2>
+              <h2 className="text-xl font-semibold mb-4">2. Select Round Details</h2>
 
               {/* Tee selection */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Hvilken tee spilte du?
+                  Which tee did you play?
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {(['white', 'yellow', 'blue', 'red'] as const).map(tee => (
@@ -274,10 +274,10 @@ export function NewRoundPage() {
                         className="sr-only"
                       />
                       <span className="font-medium capitalize">
-                        {tee === 'white' && '⚪ Hvit'}
-                        {tee === 'yellow' && '🟡 Gul'}
-                        {tee === 'blue' && '🔵 Blå'}
-                        {tee === 'red' && '🔴 Rød'}
+                        {tee === 'white' && '⚪ White'}
+                        {tee === 'yellow' && '🟡 Yellow'}
+                        {tee === 'blue' && '🔵 Blue'}
+                        {tee === 'red' && '🔴 Red'}
                       </span>
                     </label>
                   ))}
@@ -287,7 +287,7 @@ export function NewRoundPage() {
               {/* Number of holes */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Hvor mange hull spilte du?
+                  How many holes did you play?
                 </label>
                 <div className="flex gap-4">
                   <label className="flex items-center">
@@ -298,7 +298,7 @@ export function NewRoundPage() {
                       onChange={() => setNumberOfHoles(18)}
                       className="mr-2"
                     />
-                    18 hull
+                    18 holes
                   </label>
                   <label className="flex items-center">
                     <input
@@ -308,7 +308,7 @@ export function NewRoundPage() {
                       onChange={() => setNumberOfHoles(9)}
                       className="mr-2"
                     />
-                    9 hull
+                    9 holes
                   </label>
                 </div>
               </div>
@@ -317,7 +317,7 @@ export function NewRoundPage() {
               {numberOfHoles === 9 && (
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Hvilke 9 hull?
+                    Which 9 holes?
                   </label>
                   <div className="flex gap-4">
                     <label className="flex items-center">
@@ -328,7 +328,7 @@ export function NewRoundPage() {
                         onChange={() => setWhichNine('front')}
                         className="mr-2"
                       />
-                      Front 9 (hull 1-9)
+                      Front 9 (holes 1-9)
                     </label>
                     <label className="flex items-center">
                       <input
@@ -338,7 +338,7 @@ export function NewRoundPage() {
                         onChange={() => setWhichNine('back')}
                         className="mr-2"
                       />
-                      Back 9 (hull 10-18)
+                      Back 9 (holes 10-18)
                     </label>
                   </div>
                 </div>
@@ -347,7 +347,7 @@ export function NewRoundPage() {
               {/* Date picker */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Når spilte du runden?
+                  When did you play the round?
                 </label>
                 <input
                   type="date"
@@ -361,7 +361,7 @@ export function NewRoundPage() {
               {/* Players selector */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Hvem spilte med? (valgfritt)
+                  Who played with you? (optional)
                 </label>
 
                 {/* Selected players */}
@@ -392,7 +392,7 @@ export function NewRoundPage() {
                   <input
                     type="text"
                     className="input"
-                    placeholder="Søk etter brukere..."
+                    placeholder="Search for users..."
                     value={playerSearchQuery}
                     onChange={e => handlePlayerSearch(e.target.value)}
                   />
@@ -425,19 +425,19 @@ export function NewRoundPage() {
                   )}
 
                   {searchingPlayers && (
-                    <div className="absolute right-3 top-3 text-gray-400">Søker...</div>
+                    <div className="absolute right-3 top-3 text-gray-400">Searching...</div>
                   )}
                 </div>
 
                 <p className="text-xs text-gray-500 mt-1">
-                  Søk etter brukere som var med på runden (minimum 2 tegn)
+                  Search for users who played in the round (minimum 2 characters)
                 </p>
               </div>
 
               {/* Next step button */}
               <div className="flex justify-end">
                 <button onClick={handleProceedToScoring} className="btn-primary">
-                  Neste: Registrer score
+                  Next: Enter Scores
                 </button>
               </div>
             </div>
@@ -449,9 +449,9 @@ export function NewRoundPage() {
       {step === 2 && (
         <div className="card">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold">2. Registrer score</h2>
+            <h2 className="text-xl font-semibold">2. Enter Scores</h2>
             <button onClick={() => setStep(1)} className="btn-outline text-sm">
-              ← Tilbake
+              ← Back
             </button>
           </div>
 
@@ -459,12 +459,12 @@ export function NewRoundPage() {
             <p className="text-sm text-gray-700">
               <strong>{courses.find(c => c.id === selectedCourseId)?.name}</strong>
               {' • '}
-              {selectedTee === 'white' && '⚪ Hvit tee'}
-              {selectedTee === 'yellow' && '🟡 Gul tee'}
-              {selectedTee === 'blue' && '🔵 Blå tee'}
-              {selectedTee === 'red' && '🔴 Rød tee'}
+              {selectedTee === 'white' && '⚪ White tee'}
+              {selectedTee === 'yellow' && '🟡 Yellow tee'}
+              {selectedTee === 'blue' && '🔵 Blue tee'}
+              {selectedTee === 'red' && '🔴 Red tee'}
               {' • '}
-              {numberOfHoles} hull
+              {numberOfHoles} holes
               {numberOfHoles === 9 && ` (${whichNine === 'front' ? 'Front 9' : 'Back 9'})`}
             </p>
           </div>
@@ -473,15 +473,15 @@ export function NewRoundPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b-2">
-                  <th className="text-left py-2 px-2">Hull</th>
+                  <th className="text-left py-2 px-2">Hole</th>
                   <th className="text-center py-2 px-2">Par</th>
-                  <th className="text-center py-2 px-2">Slag</th>
+                  <th className="text-center py-2 px-2">Strokes</th>
                 </tr>
               </thead>
               <tbody>
                 {holeScores.map((hole, index) => (
                   <tr key={hole.holeNumber} className="border-b">
-                    <td className="py-2 px-2 font-semibold">Hull {hole.holeNumber}</td>
+                    <td className="py-2 px-2 font-semibold">Hole {hole.holeNumber}</td>
                     <td className="py-2 px-2 text-center text-gray-600">{hole.par}</td>
                     <td className="py-2 px-2">
                       <input
@@ -527,7 +527,7 @@ export function NewRoundPage() {
 
           <div className="mt-6 p-3 bg-blue-50 rounded-lg text-sm text-gray-700">
             <p>
-              <strong>Tips:</strong> Registrer antall slag du brukte på hvert hull.
+              <strong>Tip:</strong> Enter the number of strokes you took on each hole.
             </p>
           </div>
 
@@ -537,7 +537,7 @@ export function NewRoundPage() {
               disabled={saving}
               className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {saving ? 'Lagrer...' : 'Lagre runde'}
+              {saving ? 'Saving...' : 'Save Round'}
             </button>
           </div>
         </div>

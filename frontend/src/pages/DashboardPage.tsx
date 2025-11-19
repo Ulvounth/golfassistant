@@ -65,14 +65,14 @@ export function DashboardPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-8">Velkommen, {user?.firstName}! 👋</h1>
+      <h1 className="text-3xl font-bold mb-8">Welcome, {user?.firstName}! 👋</h1>
 
       {/* Stats Cards */}
       <div className="grid md:grid-cols-3 gap-6 mb-8">
         <div className="card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm">Ditt handicap</p>
+              <p className="text-gray-600 text-sm">Your Handicap</p>
               <p className="text-3xl font-bold text-primary-600">{user?.handicap.toFixed(1)}</p>
             </div>
             <TrendingUp className="text-primary-600" size={40} />
@@ -82,7 +82,7 @@ export function DashboardPage() {
         <div className="card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm">Runder spilt</p>
+              <p className="text-gray-600 text-sm">Rounds Played</p>
               <p className="text-3xl font-bold">{loading ? '-' : rounds.length}</p>
             </div>
             <History className="text-blue-600" size={40} />
@@ -92,7 +92,7 @@ export function DashboardPage() {
         <div className="card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm">Rangering</p>
+              <p className="text-gray-600 text-sm">Ranking</p>
               <p className="text-3xl font-bold">{loading ? '-' : ranking ? `#${ranking}` : '-'}</p>
             </div>
             <Trophy className="text-yellow-600" size={40} />
@@ -102,7 +102,7 @@ export function DashboardPage() {
 
       {/* Quick Actions */}
       <div className="card">
-        <h2 className="text-2xl font-bold mb-4">Hurtighandlinger</h2>
+        <h2 className="text-2xl font-bold mb-4">Quick Actions</h2>
         <div className="grid md:grid-cols-2 gap-4">
           <Link
             to="/new-round"
@@ -110,8 +110,8 @@ export function DashboardPage() {
           >
             <PlusCircle className="text-primary-600" size={32} />
             <div>
-              <h3 className="font-semibold text-lg">Registrer ny runde</h3>
-              <p className="text-gray-600 text-sm">Legg til en ny golfrunde</p>
+              <h3 className="font-semibold text-lg">Register New Round</h3>
+              <p className="text-gray-600 text-sm">Add a new golf round</p>
             </div>
           </Link>
 
@@ -121,8 +121,8 @@ export function DashboardPage() {
           >
             <History className="text-blue-600" size={32} />
             <div>
-              <h3 className="font-semibold text-lg">Se historikk</h3>
-              <p className="text-gray-600 text-sm">Oversikt over alle dine runder</p>
+              <h3 className="font-semibold text-lg">View History</h3>
+              <p className="text-gray-600 text-sm">Overview of all your rounds</p>
             </div>
           </Link>
         </div>
@@ -130,14 +130,14 @@ export function DashboardPage() {
 
       {/* Recent Rounds */}
       <div className="card mt-8">
-        <h2 className="text-2xl font-bold mb-4">Siste runder</h2>
+        <h2 className="text-2xl font-bold mb-4">Recent Rounds</h2>
         {loading ? (
-          <p className="text-gray-600">Laster...</p>
+          <p className="text-gray-600">Loading...</p>
         ) : recentRounds.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
-            <p>Du har ikke registrert noen runder ennå.</p>
+            <p>You haven't registered any rounds yet.</p>
             <Link to="/new-round" className="btn-primary mt-4 inline-block">
-              Registrer din første runde
+              Register your first round
             </Link>
           </div>
         ) : (
@@ -173,7 +173,7 @@ export function DashboardPage() {
                 to="/profile"
                 className="block text-center text-primary-600 hover:underline pt-2"
               >
-                Se alle {rounds.length} runder →
+                View all {rounds.length} rounds →
               </Link>
             )}
           </div>

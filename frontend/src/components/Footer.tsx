@@ -1,5 +1,5 @@
 /**
- * Footer-komponent
+ * Footer component
  */
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -11,33 +11,33 @@ export function Footer() {
           <div>
             <h3 className="text-xl font-bold mb-4">⛳ GolfTracker</h3>
             <p className="text-gray-400">
-              Din digitale golfassistent for å registrere runder og følge handicap.
+              Your digital golf assistant for tracking rounds and following your handicap.
             </p>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4">Lenker</h4>
+            <h4 className="font-semibold mb-4">Links</h4>
             <ul className="space-y-2 text-gray-400">
               <li>
                 <a href="/about" className="hover:text-white transition-colors">
-                  Om oss
+                  About Us
                 </a>
               </li>
               <li>
                 <a href="/contact" className="hover:text-white transition-colors">
-                  Kontakt
+                  Contact
                 </a>
               </li>
               <li>
                 <a href="/privacy" className="hover:text-white transition-colors">
-                  Personvern
+                  Privacy
                 </a>
               </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4">Følg oss</h4>
+            <h4 className="font-semibold mb-4">Follow Us</h4>
             <div className="flex space-x-4 text-gray-400">
               <a href="#" className="hover:text-white transition-colors">
                 Facebook
@@ -53,7 +53,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-          <p>&copy; {currentYear} GolfTracker. Alle rettigheter reservert.</p>
+          <p>&copy; {currentYear} GolfTracker. All rights reserved.</p>
         </div>
       </div>
     </footer>

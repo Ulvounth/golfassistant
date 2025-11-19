@@ -23,14 +23,14 @@ export function RegisterPage() {
     e.preventDefault();
     setError('');
 
-    // Validering
+    // Validation
     if (formData.password !== formData.confirmPassword) {
-      setError('Passordene matcher ikke');
+      setError('Passwords do not match');
       return;
     }
 
     if (formData.password.length < 8) {
-      setError('Passordet må være minst 8 tegn');
+      setError('Password must be at least 8 characters');
       return;
     }
 
@@ -44,7 +44,7 @@ export function RegisterPage() {
       navigate('/dashboard');
     } catch (err) {
       const error = err as { response?: { data?: { message?: string } } };
-      setError(error.response?.data?.message || 'Registrering feilet. Prøv igjen.');
+      setError(error.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -54,7 +54,7 @@ export function RegisterPage() {
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
       <div className="max-w-md w-full">
         <div className="card">
-          <h2 className="text-3xl font-bold text-center mb-8">Registrer deg</h2>
+          <h2 className="text-3xl font-bold text-center mb-8">Sign Up</h2>
 
           {error && <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg mb-4">{error}</div>}
 
@@ -62,7 +62,7 @@ export function RegisterPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
-                  Fornavn
+                  First Name
                 </label>
                 <input
                   id="firstName"
@@ -76,7 +76,7 @@ export function RegisterPage() {
 
               <div>
                 <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
-                  Etternavn
+                  Last Name
                 </label>
                 <input
                   id="lastName"
@@ -91,7 +91,7 @@ export function RegisterPage() {
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                E-post
+                Email
               </label>
               <input
                 id="email"
@@ -100,13 +100,13 @@ export function RegisterPage() {
                 className="input"
                 value={formData.email}
                 onChange={e => setFormData({ ...formData, email: e.target.value })}
-                placeholder="din@email.no"
+                placeholder="your@email.com"
               />
             </div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Passord (min. 8 tegn)
+                Password (min. 8 characters)
               </label>
               <input
                 id="password"
@@ -124,7 +124,7 @@ export function RegisterPage() {
                 htmlFor="confirmPassword"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Bekreft passord
+                Confirm Password
               </label>
               <input
                 id="confirmPassword"
@@ -138,14 +138,14 @@ export function RegisterPage() {
             </div>
 
             <button type="submit" disabled={loading} className="w-full btn-primary">
-              {loading ? 'Registrerer...' : 'Registrer deg'}
+              {loading ? 'Signing up...' : 'Sign up'}
             </button>
           </form>
 
           <p className="text-center mt-6 text-gray-600">
-            Har du allerede en konto?{' '}
+            Already have an account?{' '}
             <Link to="/login" className="text-primary-600 hover:text-primary-700 font-medium">
-              Logg inn her
+              Log in here
             </Link>
           </p>
         </div>

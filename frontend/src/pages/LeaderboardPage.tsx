@@ -39,9 +39,9 @@ export function LeaderboardPage() {
 
       <div className="card">
         {loading ? (
-          <p className="text-gray-600">Laster leaderboard...</p>
+          <p className="text-gray-600">Loading leaderboard...</p>
         ) : leaderboard.length === 0 ? (
-          <p className="text-gray-600">Ingen spillere funnet.</p>
+          <p className="text-gray-600">No players found.</p>
         ) : (
           <div className="space-y-2">
             {leaderboard.map((entry, index) => {
@@ -70,12 +70,12 @@ export function LeaderboardPage() {
                         {entry.firstName} {entry.lastName}
                         {isCurrentUser && (
                           <span className="ml-2 text-xs bg-primary-600 text-white px-2 py-1 rounded">
-                            DEG
+                            YOU
                           </span>
                         )}
                       </p>
                       <p className="text-sm text-gray-600">
-                        {entry.roundsPlayed} {entry.roundsPlayed === 1 ? 'runde' : 'runder'} spilt
+                        {entry.roundsPlayed} {entry.roundsPlayed === 1 ? 'round' : 'rounds'} played
                       </p>
                     </div>
                   </div>
@@ -95,8 +95,8 @@ export function LeaderboardPage() {
 
       <div className="mt-6 p-4 bg-blue-50 rounded-lg text-sm">
         <p className="text-blue-800">
-          ℹ️ <strong>Leaderboard:</strong> Spillere rangeres etter lavest handicap. Jo lavere
-          handicap, jo bedre spiller!
+          ℹ️ <strong>Leaderboard:</strong> Players are ranked by lowest handicap. The lower the
+          handicap, the better the player!
         </p>
       </div>
     </div>
