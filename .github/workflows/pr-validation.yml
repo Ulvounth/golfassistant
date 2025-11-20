@@ -100,7 +100,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build frontend Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./frontend
           file: ./frontend/Dockerfile
@@ -108,7 +108,7 @@ jobs:
           tags: golftracker-frontend:test
 
       - name: Build backend Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./backend
           file: ./backend/Dockerfile
