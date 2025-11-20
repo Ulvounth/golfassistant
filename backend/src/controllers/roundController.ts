@@ -13,15 +13,27 @@ import { logger } from '../config/logger';
 
 /**
  * Beregn score differential for handicap-beregning
- * Forenklet versjon - i produksjon må dette være mer nøyaktig
+ * Følger WHS (World Handicap System) regler
+ *
+ * For 9-hulls runder:
+ * - courseRating må være 9-hulls rating (dvs. 18-hulls rating / 2)
+ * - Score og rating blir doblet for å simulere 18-hull
+ * - Bruker full 18-hulls slope (ikke halveres)
+ *
  * Exported for testing
  */
 export const calculateScoreDifferential = (
   totalScore: number,
   courseRating: number,
-  slopeRating: number
+  slopeRating: number,
+  numberOfHoles: number = 18
 ): number => {
-  return ((totalScore - courseRating) * 113) / slopeRating;
+  // For 9-hulls: doble både score og rating
+  // OBS: courseRating skal være 9-hulls rating som input
+  const adjustedScore = numberOfHoles === 9 ? totalScore * 2 : totalScore;
+  const adjustedRating = numberOfHoles === 9 ? courseRating * 2 : courseRating;
+
+  return ((adjustedScore - adjustedRating) * 113) / slopeRating;
 };
 
 /**
@@ -275,20 +287,28 @@ export const createRound = async (req: Request, res: Response): Promise<void> =>
     }
 
     const course = courseResult.Item;
-    let courseRating = course.rating[roundData.teeColor];
-    let slopeRating = course.slope[roundData.teeColor];
 
-    // For 9-hulls runder: juster rating og slope (delt på 2)
-    if (roundData.numberOfHoles === 9) {
-      courseRating = courseRating / 2;
-      slopeRating = slopeRating / 2;
-    }
+    // For 9-hulls: bruk halvparten av 18-hulls rating
+    // WHS krever at vi sender 9-hulls rating til calculateScoreDifferential
+    const courseRating =
+      roundData.numberOfHoles === 9
+        ? course.rating[roundData.teeColor] / 2
+        : course.rating[roundData.teeColor];
+
+    // Slope forblir full 18-hulls verdi (per WHS)
+    const slopeRating = course.slope[roundData.teeColor];
 
     // Beregn total score og par
     const totalScore = roundData.holes.reduce((sum, hole) => sum + hole.strokes, 0);
     const totalPar = roundData.holes.reduce((sum, hole) => sum + hole.par, 0);
 
-    const scoreDifferential = calculateScoreDifferential(totalScore, courseRating, slopeRating);
+    // calculateScoreDifferential håndterer 9-hulls automatisk
+    const scoreDifferential = calculateScoreDifferential(
+      totalScore,
+      courseRating,
+      slopeRating,
+      roundData.numberOfHoles
+    );
 
     const roundId = uuidv4();
     const timestamp = new Date().toISOString();
@@ -372,14 +392,16 @@ export const createMultiPlayerRound = async (req: Request, res: Response): Promi
     }
 
     const course = courseResult.Item;
-    let courseRating = course.rating[roundData.teeColor];
-    let slopeRating = course.slope[roundData.teeColor];
 
-    // For 9-hulls runder: juster rating og slope (delt på 2)
-    if (roundData.numberOfHoles === 9) {
-      courseRating = courseRating / 2;
-      slopeRating = slopeRating / 2;
-    }
+    // For 9-hulls: bruk halvparten av 18-hulls rating
+    // WHS krever at vi sender 9-hulls rating til calculateScoreDifferential
+    const courseRating =
+      roundData.numberOfHoles === 9
+        ? course.rating[roundData.teeColor] / 2
+        : course.rating[roundData.teeColor];
+
+    // Slope forblir full 18-hulls verdi (per WHS)
+    const slopeRating = course.slope[roundData.teeColor];
 
     const timestamp = new Date().toISOString();
     const createdRounds = [];
@@ -388,7 +410,14 @@ export const createMultiPlayerRound = async (req: Request, res: Response): Promi
     for (const playerScore of roundData.playerScores) {
       const totalScore = playerScore.holes.reduce((sum, hole) => sum + hole.strokes, 0);
       const totalPar = playerScore.holes.reduce((sum, hole) => sum + hole.par, 0);
-      const scoreDifferential = calculateScoreDifferential(totalScore, courseRating, slopeRating);
+
+      // calculateScoreDifferential håndterer 9-hulls automatisk
+      const scoreDifferential = calculateScoreDifferential(
+        totalScore,
+        courseRating,
+        slopeRating,
+        roundData.numberOfHoles
+      );
 
       const roundId = uuidv4();
 
