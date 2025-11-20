@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { PlusCircle, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store/authStore';
 import { courseService } from '@/services/courseService';
 import { roundService } from '@/services/roundService';
@@ -71,7 +72,7 @@ export function NewRoundPage() {
   const handleCourseAdded = (courseId: string, courseName: string) => {
     setSelectedCourseId(courseId);
     loadCourses(); // Refresh course list
-    alert(`✅ Course "${courseName}" added!`);
+    toast.success(`Course "${courseName}" added!`);
   };
 
   const handleProceedToScoring = () => {
@@ -209,15 +210,15 @@ export function NewRoundPage() {
       }
 
       const playerCount = selectedPlayers.length + 1; // +1 for yourself
-      alert(
-        `✅ Round saved successfully! ${playerCount} ${
+      toast.success(
+        `Round saved successfully! ${playerCount} ${
           playerCount === 1 ? 'player' : 'players'
         } registered.`
       );
       navigate('/profile');
     } catch (error) {
       console.error('Failed to save round:', error);
-      alert('❌ Failed to save round. Please try again.');
+      toast.error('Failed to save round. Please try again.');
     } finally {
       setSaving(false);
     }

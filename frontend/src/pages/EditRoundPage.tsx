@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Trash2, X } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store/authStore';
 import { roundService } from '@/services/roundService';
 import { userService, UserSearchResult } from '@/services/userService';
@@ -50,7 +51,7 @@ export function EditRoundPage() {
 
       // Check if user owns this round
       if (roundData.userId !== currentUserId) {
-        alert('⛔ You can only edit your own rounds');
+        toast.error('You can only edit your own rounds');
         navigate('/profile');
         return;
       }
@@ -67,7 +68,7 @@ export function EditRoundPage() {
       }
     } catch (error) {
       console.error('Failed to load round:', error);
-      alert('❌ Failed to load round');
+      toast.error('Failed to load round');
       navigate('/profile');
     } finally {
       setLoading(false);
@@ -235,15 +236,15 @@ export function EditRoundPage() {
       }
 
       const playerCount = playersWithValidScores.length + 1;
-      alert(
-        `✅ Round updated successfully! ${playerCount} ${
+      toast.success(
+        `Round updated successfully! ${playerCount} ${
           playerCount === 1 ? 'player' : 'players'
         } updated.`
       );
       navigate('/profile');
     } catch (error) {
       console.error('Failed to update round:', error);
-      alert('❌ Failed to update round. Please try again.');
+      toast.error('Failed to update round. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -278,13 +279,13 @@ export function EditRoundPage() {
       }
 
       const successMessage = hasMultiplePlayers
-        ? `✅ Round deleted successfully for all ${selectedPlayers.length + 1} players!`
-        : '✅ Round deleted successfully!';
-      alert(successMessage);
+        ? `Round deleted successfully for all ${selectedPlayers.length + 1} players!`
+        : 'Round deleted successfully!';
+      toast.success(successMessage);
       navigate('/profile');
     } catch (error) {
       console.error('Failed to delete round:', error);
-      alert('❌ Failed to delete round. Please try again.');
+      toast.error('Failed to delete round. Please try again.');
     } finally {
       setDeleting(false);
     }

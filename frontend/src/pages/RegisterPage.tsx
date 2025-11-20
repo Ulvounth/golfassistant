@@ -1,5 +1,6 @@
 import { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store/authStore';
 import { authService } from '@/services/authService';
 
@@ -41,6 +42,7 @@ export function RegisterPage() {
       const { confirmPassword, ...registerData } = formData;
       const response = await authService.register(registerData);
       login(response.user, response.token);
+      toast.success(`Welcome to GolfTracker, ${response.user.firstName}!`);
       navigate('/dashboard');
     } catch (err) {
       const error = err as { response?: { data?: { message?: string } } };

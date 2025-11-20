@@ -1,5 +1,6 @@
 import { useState, FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store/authStore';
 import { authService } from '@/services/authService';
 
@@ -26,6 +27,7 @@ export function LoginPage() {
     try {
       const response = await authService.login(formData);
       login(response.user, response.token);
+      toast.success('Welcome back!');
       navigate(redirectTo);
     } catch (err) {
       const error = err as { response?: { data?: { message?: string } } };

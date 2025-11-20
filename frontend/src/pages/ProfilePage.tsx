@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Pencil, Camera } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store/authStore';
 import { roundService } from '@/services/roundService';
 import { userService } from '@/services/userService';
@@ -124,13 +125,13 @@ export function ProfilePage() {
 
     // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB');
+      toast.error('File size must be less than 5MB');
       return;
     }
 
     // Validate file type
     if (!file.type.match(/^image\/(jpeg|jpg|png|webp)$/)) {
-      alert('Only JPG, PNG, and WebP images are allowed');
+      toast.error('Only JPG, PNG, and WebP images are allowed');
       return;
     }
 
@@ -142,9 +143,10 @@ export function ProfilePage() {
       if (user) {
         updateUser({ ...user, profileImageUrl: result.profileImageUrl });
       }
+      toast.success('Profile picture updated successfully!');
     } catch (error) {
       console.error('Failed to upload image:', error);
-      alert('Failed to upload image. Please try again.');
+      toast.error('Failed to upload image. Please try again.');
     } finally {
       setUploading(false);
     }

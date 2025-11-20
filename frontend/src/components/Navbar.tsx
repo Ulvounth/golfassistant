@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { Menu, X, User, LogOut } from 'lucide-react';
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 /**
  * Navbar-komponent med navigasjon og brukerinfo
@@ -13,6 +14,7 @@ export function Navbar() {
 
   const handleLogout = () => {
     logout();
+    toast.success('Logged out successfully');
     navigate('/');
   };
 
