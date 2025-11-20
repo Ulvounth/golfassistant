@@ -3,6 +3,7 @@ import { authenticate } from '../middleware/authenticate';
 import {
   getRounds,
   getRound,
+  getRoundsByCriteria,
   createRound,
   createMultiPlayerRound,
   updateRound,
@@ -27,6 +28,12 @@ router.get('/', getRounds);
  * Hent en spesifikk runde
  */
 router.get('/:id', getRound);
+
+/**
+ * POST /api/rounds/by-criteria
+ * Hent runder basert på dato, bane og spillere
+ */
+router.post('/by-criteria', getRoundsByCriteria);
 
 /**
  * POST /api/rounds

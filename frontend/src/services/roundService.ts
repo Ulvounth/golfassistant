@@ -25,15 +25,27 @@ export interface CreateMultiPlayerRoundData {
   playerScores: PlayerScores[];
 }
 
+export interface PaginatedRoundsResponse {
+  rounds: GolfRound[];
+  nextToken: string | null;
+  hasMore: boolean;
+}
+
 /**
  * Service for håndtering av golfrunder
  */
 export const roundService = {
   /**
-   * Henter alle runder for innlogget bruker
+   * Henter runder for innlogget bruker med paginering
    */
-  async getRounds(): Promise<GolfRound[]> {
-    const response = await api.get<GolfRound[]>('/rounds');
+  async getRounds(limit: number = 20, nextToken?: string): Promise<PaginatedRoundsResponse> {
+    const params = new URLSearchParams();
+    params.append('limit', limit.toString());
+    if (nextToken) {
+      params.append('nextToken', nextToken);
+    }
+
+    const response = await api.get<PaginatedRoundsResponse>(`/rounds?${params.toString()}`);
     return response.data;
   },
 
@@ -42,6 +54,22 @@ export const roundService = {
    */
   async getRound(id: string): Promise<GolfRound> {
     const response = await api.get<GolfRound>(`/rounds/${id}`);
+    return response.data;
+  },
+
+  /**
+   * Henter runder basert på dato, bane og spillere
+   */
+  async getRoundsByCriteria(
+    date: string,
+    courseId: string,
+    userIds: string[]
+  ): Promise<GolfRound[]> {
+    const response = await api.post<GolfRound[]>('/rounds/by-criteria', {
+      date,
+      courseId,
+      userIds,
+    });
     return response.data;
   },
 

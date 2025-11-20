@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import { ScanCommand, GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { dynamodb, TABLES } from '../config/aws';
+import { logger } from '../config/logger';
 
 /**
  * GET /api/courses
@@ -8,16 +10,16 @@ import { dynamodb, TABLES } from '../config/aws';
  */
 export const getCourses = async (req: Request, res: Response): Promise<void> => {
   try {
-    const result = await dynamodb
-      .scan({
+    const result = await dynamodb.send(
+      new ScanCommand({
         TableName: TABLES.COURSES,
       })
-      .promise();
+    );
 
     res.json(result.Items || []);
   } catch (error) {
-    console.error('Get courses error:', error);
-    res.status(500).json({ message: 'Kunne ikke hente baner' });
+    logger.error('Get courses error:', error);
+    res.status(500).json({ message: 'Kunne ikke hente golfbaner' });
   }
 };
 
@@ -29,12 +31,12 @@ export const getCourse = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
 
-    const result = await dynamodb
-      .get({
+    const result = await dynamodb.send(
+      new GetCommand({
         TableName: TABLES.COURSES,
         Key: { id },
       })
-      .promise();
+    );
 
     if (!result.Item) {
       res.status(404).json({ message: 'Bane ikke funnet' });
@@ -43,8 +45,8 @@ export const getCourse = async (req: Request, res: Response): Promise<void> => {
 
     res.json(result.Item);
   } catch (error) {
-    console.error('Get course error:', error);
-    res.status(500).json({ message: 'Kunne ikke hente bane' });
+    logger.error('Get course error:', error);
+    res.status(500).json({ message: 'Kunne ikke hente golfbane' });
   }
 };
 
@@ -62,8 +64,8 @@ export const searchCourses = async (req: Request, res: Response): Promise<void> 
     }
 
     // Enkel scan med filter - i produksjon bør dette brukeElasticSearch eller lignende
-    const result = await dynamodb
-      .scan({
+    const result = await dynamodb.send(
+      new ScanCommand({
         TableName: TABLES.COURSES,
         FilterExpression: 'contains(#name, :query) OR contains(#location, :query)',
         ExpressionAttributeNames: {
@@ -74,11 +76,11 @@ export const searchCourses = async (req: Request, res: Response): Promise<void> 
           ':query': q,
         },
       })
-      .promise();
+    );
 
     res.json(result.Items || []);
   } catch (error) {
-    console.error('Search courses error:', error);
+    logger.error('Search courses error:', error);
     res.status(500).json({ message: 'Søk feilet' });
   }
 };
@@ -103,8 +105,8 @@ export const createCourse = async (req: Request, res: Response): Promise<void> =
     }
 
     // Sjekk om bane allerede finnes (unngå duplikater)
-    const existingCourses = await dynamodb
-      .scan({
+    const existingCourses = await dynamodb.send(
+      new ScanCommand({
         TableName: TABLES.COURSES,
         FilterExpression: '#name = :name AND #location = :location',
         ExpressionAttributeNames: {
@@ -116,7 +118,7 @@ export const createCourse = async (req: Request, res: Response): Promise<void> =
           ':location': location,
         },
       })
-      .promise();
+    );
 
     if (existingCourses.Items && existingCourses.Items.length > 0) {
       // Bane finnes allerede, returner eksisterende
@@ -139,17 +141,17 @@ export const createCourse = async (req: Request, res: Response): Promise<void> =
       createdBy: req.user?.userId || 'anonymous',
     };
 
-    await dynamodb
-      .put({
+    await dynamodb.send(
+      new PutCommand({
         TableName: TABLES.COURSES,
         Item: newCourse,
       })
-      .promise();
+    );
 
-    console.log(`✅ Ny bane opprettet: ${name} (${location})`);
+    logger.info(`✅ Ny bane opprettet: ${name} (${location})`);
     res.status(201).json(newCourse);
   } catch (error) {
-    console.error('Create course error:', error);
-    res.status(500).json({ message: 'Kunne ikke opprette bane' });
+    logger.error('Create course error:', error);
+    res.status(500).json({ message: 'Kunne ikke opprette golfbane' });
   }
 };

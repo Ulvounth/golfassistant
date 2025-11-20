@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { logger } from '../config/logger';
 
 /**
  * Custom error class
@@ -27,7 +28,7 @@ export const errorHandler = (
 
   // Logg feil i produksjon
   if (process.env.NODE_ENV === 'production') {
-    console.error('Error:', {
+    logger.error('API Error:', {
       message: err.message,
       stack: err.stack,
       url: req.url,
@@ -35,7 +36,7 @@ export const errorHandler = (
     });
   } else {
     // Vis full stack trace i development
-    console.error(err);
+    logger.error('Development Error:', err);
   }
 
   res.status(statusCode).json({

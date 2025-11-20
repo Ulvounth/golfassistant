@@ -1,13 +1,22 @@
 import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import {
+  GetCommand,
+  PutCommand,
+  QueryCommand,
+  UpdateCommand,
+  DeleteCommand,
+} from '@aws-sdk/lib-dynamodb';
 import { dynamodb, TABLES } from '../config/aws';
 import { CreateRoundInput, CreateMultiPlayerRoundInput } from '../validators/schemas';
+import { logger } from '../config/logger';
 
 /**
  * Beregn score differential for handicap-beregning
  * Forenklet versjon - i produksjon må dette være mer nøyaktig
+ * Exported for testing
  */
-const calculateScoreDifferential = (
+export const calculateScoreDifferential = (
   totalScore: number,
   courseRating: number,
   slopeRating: number
@@ -22,8 +31,8 @@ const calculateScoreDifferential = (
 const updateUserHandicap = async (userId: string): Promise<void> => {
   try {
     // Hent brukerens siste 20 runder
-    const roundsResult = await dynamodb
-      .query({
+    const roundsResult = await dynamodb.send(
+      new QueryCommand({
         TableName: TABLES.ROUNDS,
         IndexName: 'userId-date-index',
         KeyConditionExpression: 'userId = :userId',
@@ -33,14 +42,14 @@ const updateUserHandicap = async (userId: string): Promise<void> => {
         ScanIndexForward: false, // Nyeste først
         Limit: 20,
       })
-      .promise();
+    );
 
     const rounds = roundsResult.Items || [];
 
     if (rounds.length === 0) {
       // Ingen runder, sett handicap til 54 (maks)
-      await dynamodb
-        .update({
+      await dynamodb.send(
+        new UpdateCommand({
           TableName: TABLES.USERS,
           Key: { id: userId },
           UpdateExpression: 'set handicap = :handicap, updatedAt = :updatedAt',
@@ -49,7 +58,7 @@ const updateUserHandicap = async (userId: string): Promise<void> => {
             ':updatedAt': new Date().toISOString(),
           },
         })
-        .promise();
+      );
       return;
     }
 
@@ -83,8 +92,8 @@ const updateUserHandicap = async (userId: string): Promise<void> => {
     const newHandicap = Math.round(averageDifferential * 10) / 10;
 
     // Oppdater brukerens handicap
-    await dynamodb
-      .update({
+    await dynamodb.send(
+      new UpdateCommand({
         TableName: TABLES.USERS,
         Key: { id: userId },
         UpdateExpression: 'set handicap = :handicap, updatedAt = :updatedAt',
@@ -93,40 +102,70 @@ const updateUserHandicap = async (userId: string): Promise<void> => {
           ':updatedAt': new Date().toISOString(),
         },
       })
-      .promise();
+    );
 
-    console.log(
-      `Updated handicap for user ${userId}: ${newHandicap} (from ${rounds.length} rounds)`
+    logger.info(
+      `Updated handicap for user ${userId}: ${newHandicap.toFixed(1)} (from ${
+        rounds.length
+      } rounds)`
     );
   } catch (error) {
-    console.error('Error updating handicap:', error);
+    logger.error('Error updating handicap:', error);
     // Ikke kast feil - handicap-oppdatering skal ikke stoppe runde-lagring
   }
 };
 
 /**
- * GET /api/rounds
- * Hent alle runder for innlogget bruker
+ * GET /api/rounds?limit=20&nextToken=...
+ * Hent runder for innlogget bruker med paginering
  */
 export const getRounds = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user?.userId;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const nextToken = req.query.nextToken as string | undefined;
 
-    const result = await dynamodb
-      .query({
-        TableName: TABLES.ROUNDS,
-        IndexName: 'userId-date-index',
-        KeyConditionExpression: 'userId = :userId',
-        ExpressionAttributeValues: {
-          ':userId': userId,
-        },
-        ScanIndexForward: false, // Nyeste først
-      })
-      .promise();
+    // Validate limit
+    if (limit < 1 || limit > 100) {
+      res.status(400).json({ message: 'Limit må være mellom 1 og 100' });
+      return;
+    }
 
-    res.json(result.Items || []);
+    const queryParams: any = {
+      TableName: TABLES.ROUNDS,
+      IndexName: 'userId-date-index',
+      KeyConditionExpression: 'userId = :userId',
+      ExpressionAttributeValues: {
+        ':userId': userId,
+      },
+      ScanIndexForward: false, // Nyeste først
+      Limit: limit,
+    };
+
+    // Add pagination token if provided
+    if (nextToken) {
+      try {
+        queryParams.ExclusiveStartKey = JSON.parse(Buffer.from(nextToken, 'base64').toString());
+      } catch (error) {
+        res.status(400).json({ message: 'Ugyldig nextToken' });
+        return;
+      }
+    }
+
+    const result = await dynamodb.send(new QueryCommand(queryParams));
+
+    // Encode LastEvaluatedKey as base64 token
+    const responseNextToken = result.LastEvaluatedKey
+      ? Buffer.from(JSON.stringify(result.LastEvaluatedKey)).toString('base64')
+      : null;
+
+    res.json({
+      rounds: result.Items || [],
+      nextToken: responseNextToken,
+      hasMore: !!result.LastEvaluatedKey,
+    });
   } catch (error) {
-    console.error('Get rounds error:', error);
+    logger.error('Get rounds error:', error);
     res.status(500).json({ message: 'Kunne ikke hente runder' });
   }
 };
@@ -140,12 +179,12 @@ export const getRound = async (req: Request, res: Response): Promise<void> => {
     const { id } = req.params;
     const userId = req.user?.userId;
 
-    const result = await dynamodb
-      .get({
+    const result = await dynamodb.send(
+      new GetCommand({
         TableName: TABLES.ROUNDS,
         Key: { id },
       })
-      .promise();
+    );
 
     if (!result.Item) {
       res.status(404).json({ message: 'Runde ikke funnet' });
@@ -160,8 +199,56 @@ export const getRound = async (req: Request, res: Response): Promise<void> => {
 
     res.json(result.Item);
   } catch (error) {
-    console.error('Get round error:', error);
+    logger.error('Get round error:', error);
     res.status(500).json({ message: 'Kunne ikke hente runde' });
+  }
+};
+
+/**
+ * POST /api/rounds/by-criteria
+ * Hent runder basert på dato, bane og spillere
+ * Brukes for å finne relaterte runder i en multi-player gruppe
+ */
+export const getRoundsByCriteria = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { date, courseId, userIds } = req.body;
+
+    if (!date || !courseId || !userIds || !Array.isArray(userIds)) {
+      res.status(400).json({ message: 'date, courseId og userIds er påkrevd' });
+      return;
+    }
+
+    // Hent runder for hver bruker på den gitte datoen
+    const roundPromises = userIds.map(async (userId: string) => {
+      const result = await dynamodb.send(
+        new QueryCommand({
+          TableName: TABLES.ROUNDS,
+          IndexName: 'userId-date-index',
+          KeyConditionExpression: 'userId = :userId AND #date = :date',
+          FilterExpression: 'courseId = :courseId',
+          ExpressionAttributeNames: {
+            '#date': 'date',
+          },
+          ExpressionAttributeValues: {
+            ':userId': userId,
+            ':date': date,
+            ':courseId': courseId,
+          },
+        })
+      );
+
+      // Returner første match (skal bare være én per bruker per dato/bane)
+      return result.Items && result.Items.length > 0 ? result.Items[0] : null;
+    });
+
+    const rounds = await Promise.all(roundPromises);
+    // Filtrer bort null-verdier
+    const validRounds = rounds.filter(r => r !== null);
+
+    res.json(validRounds);
+  } catch (error) {
+    logger.error('Get rounds by criteria error:', error);
+    res.status(500).json({ message: 'Kunne ikke hente runder' });
   }
 };
 
@@ -175,12 +262,12 @@ export const createRound = async (req: Request, res: Response): Promise<void> =>
     const roundData = req.body as CreateRoundInput;
 
     // Hent course fra database for å få rating og slope
-    const courseResult = await dynamodb
-      .get({
+    const courseResult = await dynamodb.send(
+      new GetCommand({
         TableName: TABLES.COURSES,
         Key: { id: roundData.courseId },
       })
-      .promise();
+    );
 
     if (!courseResult.Item) {
       res.status(404).json({ message: 'Golfbane ikke funnet' });
@@ -217,12 +304,12 @@ export const createRound = async (req: Request, res: Response): Promise<void> =>
       updatedAt: timestamp,
     };
 
-    await dynamodb
-      .put({
+    await dynamodb.send(
+      new PutCommand({
         TableName: TABLES.ROUNDS,
         Item: round,
       })
-      .promise();
+    );
 
     // Oppdater brukerens handicap basert på WHS
     if (userId) {
@@ -231,7 +318,7 @@ export const createRound = async (req: Request, res: Response): Promise<void> =>
 
     res.status(201).json(round);
   } catch (error) {
-    console.error('Create round error:', error);
+    logger.error('Create round error:', error);
     res.status(500).json({ message: 'Kunne ikke opprette runde' });
   }
 };
@@ -256,12 +343,12 @@ export const createMultiPlayerRound = async (req: Request, res: Response): Promi
     // Verify all players exist
     const playerChecks = await Promise.all(
       playerIds.map(playerId =>
-        dynamodb
-          .get({
+        dynamodb.send(
+          new GetCommand({
             TableName: TABLES.USERS,
             Key: { id: playerId },
           })
-          .promise()
+        )
       )
     );
 
@@ -272,12 +359,12 @@ export const createMultiPlayerRound = async (req: Request, res: Response): Promi
     }
 
     // Hent course fra database for å få rating og slope
-    const courseResult = await dynamodb
-      .get({
+    const courseResult = await dynamodb.send(
+      new GetCommand({
         TableName: TABLES.COURSES,
         Key: { id: roundData.courseId },
       })
-      .promise();
+    );
 
     if (!courseResult.Item) {
       res.status(404).json({ message: 'Golfbane ikke funnet' });
@@ -325,12 +412,12 @@ export const createMultiPlayerRound = async (req: Request, res: Response): Promi
         updatedAt: timestamp,
       };
 
-      await dynamodb
-        .put({
+      await dynamodb.send(
+        new PutCommand({
           TableName: TABLES.ROUNDS,
           Item: round,
         })
-        .promise();
+      );
 
       createdRounds.push(round);
 
@@ -343,7 +430,7 @@ export const createMultiPlayerRound = async (req: Request, res: Response): Promi
       rounds: createdRounds,
     });
   } catch (error) {
-    console.error('Create multi-player round error:', error);
+    logger.error('Create multi-player round error:', error);
     res.status(500).json({ message: 'Kunne ikke opprette runde' });
   }
 };
@@ -359,12 +446,12 @@ export const updateRound = async (req: Request, res: Response): Promise<void> =>
     const updates = req.body;
 
     // Sjekk at runden tilhører bruker
-    const existing = await dynamodb
-      .get({
+    const existing = await dynamodb.send(
+      new GetCommand({
         TableName: TABLES.ROUNDS,
         Key: { id },
       })
-      .promise();
+    );
 
     if (!existing.Item || existing.Item.userId !== userId) {
       res.status(403).json({ message: 'Ingen tilgang' });
@@ -372,8 +459,8 @@ export const updateRound = async (req: Request, res: Response): Promise<void> =>
     }
 
     // Oppdater runde
-    const result = await dynamodb
-      .update({
+    const result = await dynamodb.send(
+      new UpdateCommand({
         TableName: TABLES.ROUNDS,
         Key: { id },
         UpdateExpression: 'set holes = :holes, updatedAt = :updatedAt',
@@ -383,47 +470,95 @@ export const updateRound = async (req: Request, res: Response): Promise<void> =>
         },
         ReturnValues: 'ALL_NEW',
       })
-      .promise();
+    );
 
     res.json(result.Attributes);
   } catch (error) {
-    console.error('Update round error:', error);
+    logger.error('Update round error:', error);
     res.status(500).json({ message: 'Kunne ikke oppdatere runde' });
   }
 };
 
 /**
  * DELETE /api/rounds/:id
- * Slett runde
+ * Slett runde og alle relaterte runder (multi-player)
  */
 export const deleteRound = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const userId = req.user?.userId;
 
-    // Sjekk at runden tilhører bruker
-    const existing = await dynamodb
-      .get({
+    // Hent runden som skal slettes
+    const existing = await dynamodb.send(
+      new GetCommand({
         TableName: TABLES.ROUNDS,
         Key: { id },
       })
-      .promise();
+    );
 
     if (!existing.Item || existing.Item.userId !== userId) {
       res.status(403).json({ message: 'Ingen tilgang' });
       return;
     }
 
-    await dynamodb
-      .delete({
-        TableName: TABLES.ROUNDS,
-        Key: { id },
-      })
-      .promise();
+    const round = existing.Item;
 
-    res.json({ message: 'Runde slettet' });
+    // Finn alle relaterte runder (samme dato/bane med andre spillere)
+    let relatedRounds: any[] = [];
+    if (round.players && round.players.length > 0) {
+      // Dette er en multi-player runde, finn alle spillernes runder
+      // Inkluder både deg selv (userId) og alle i players-arrayet
+      const allPlayerIds = [userId, ...round.players];
+
+      const relatedRoundsResult = await Promise.all(
+        allPlayerIds.map(async (playerId: string) => {
+          const result = await dynamodb.send(
+            new QueryCommand({
+              TableName: TABLES.ROUNDS,
+              IndexName: 'userId-date-index',
+              KeyConditionExpression: 'userId = :userId AND #date = :date',
+              FilterExpression: 'courseId = :courseId',
+              ExpressionAttributeNames: {
+                '#date': 'date',
+              },
+              ExpressionAttributeValues: {
+                ':userId': playerId,
+                ':date': round.date,
+                ':courseId': round.courseId,
+              },
+            })
+          );
+          return result.Items || [];
+        })
+      );
+      relatedRounds = relatedRoundsResult.flat();
+    } else {
+      // Single-player runde, bare denne
+      relatedRounds = [round];
+    }
+
+    // Slett alle relaterte runder
+    const deletePromises = relatedRounds.map(r =>
+      dynamodb.send(
+        new DeleteCommand({
+          TableName: TABLES.ROUNDS,
+          Key: { id: r.id },
+        })
+      )
+    );
+
+    await Promise.all(deletePromises);
+
+    // Oppdater handicap for alle berørte spillere
+    const uniquePlayerIds = [...new Set(relatedRounds.map(r => r.userId))];
+    await Promise.all(uniquePlayerIds.map(playerId => updateUserHandicap(playerId)));
+
+    res.json({
+      message: `${relatedRounds.length} runde${relatedRounds.length > 1 ? 'r' : ''} slettet`,
+      deletedCount: relatedRounds.length,
+    });
   } catch (error) {
-    console.error('Delete round error:', error);
+    logger.error('Delete round error:', error);
     res.status(500).json({ message: 'Kunne ikke slette runde' });
   }
 };

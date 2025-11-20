@@ -6,13 +6,29 @@ import {
   uploadProfileImage,
   getHandicapHistory,
   searchUsers,
+  batchGetUsers,
 } from '../controllers/userController';
 import { validate } from '../middleware/validate';
 import { updateProfileSchema } from '../validators/schemas';
 import multer from 'multer';
 
 const router = Router();
-const upload = multer({ storage: multer.memoryStorage() });
+
+// Multer config for image uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB max
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Ugyldig filtype. Kun JPG, PNG og WebP er tillatt'));
+    }
+  },
+});
 
 // Alle ruter krever autentisering
 router.use(authenticate);
@@ -22,6 +38,12 @@ router.use(authenticate);
  * Søk etter brukere (må være før /profile for å ikke matche :id pattern)
  */
 router.get('/search', searchUsers);
+
+/**
+ * POST /api/user/batch
+ * Hent flere brukere basert på IDs
+ */
+router.post('/batch', batchGetUsers);
 
 /**
  * GET /api/user/profile

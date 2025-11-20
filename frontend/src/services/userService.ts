@@ -39,11 +39,11 @@ export const userService = {
   /**
    * Laster opp profilbilde
    */
-  async uploadProfileImage(file: File): Promise<{ url: string }> {
+  async uploadProfileImage(file: File): Promise<{ profileImageUrl: string }> {
     const formData = new FormData();
     formData.append('image', file);
 
-    const response = await api.post<{ url: string }>('/user/profile-image', formData, {
+    const response = await api.post<{ profileImageUrl: string }>('/user/profile-image', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -65,6 +65,18 @@ export const userService = {
   async searchUsers(query: string): Promise<UserSearchResult[]> {
     const response = await api.get<UserSearchResult[]>('/user/search', {
       params: { q: query },
+    });
+    return response.data;
+  },
+
+  /**
+   * Henter flere brukere basert på IDs (batch fetch)
+   */
+  async batchGetUsers(userIds: string[]): Promise<UserSearchResult[]> {
+    if (userIds.length === 0) return [];
+
+    const response = await api.post<UserSearchResult[]>('/user/batch', {
+      userIds,
     });
     return response.data;
   },

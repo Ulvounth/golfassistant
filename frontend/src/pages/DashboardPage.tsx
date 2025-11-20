@@ -14,6 +14,7 @@ export function DashboardPage() {
   const user = useAuthStore(state => state.user);
   const updateUser = useAuthStore(state => state.updateUser);
   const [rounds, setRounds] = useState<GolfRound[]>([]);
+  const [totalRounds, setTotalRounds] = useState(0);
   const [ranking, setRanking] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -28,9 +29,22 @@ export function DashboardPage() {
       const userData = await userService.getProfile();
       updateUser(userData);
 
-      // Hent runder
-      const roundsData = await roundService.getRounds();
-      setRounds(roundsData);
+      // Hent alle runder for å telle totalt antall
+      let allRounds: GolfRound[] = [];
+      let nextToken: string | null | undefined = undefined;
+      let hasMore = true;
+
+      // Fetch all rounds to get accurate count
+      while (hasMore) {
+        const roundsData = await roundService.getRounds(100, nextToken || undefined);
+        allRounds = [...allRounds, ...roundsData.rounds];
+        nextToken = roundsData.nextToken;
+        hasMore = roundsData.hasMore;
+      }
+
+      setTotalRounds(allRounds.length);
+      // Vis bare de 5 siste
+      setRounds(allRounds.slice(0, 5));
 
       // Hent leaderboard for å finne rangering
       const leaderboard = await leaderboardService.getLeaderboard();
@@ -83,7 +97,7 @@ export function DashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm">Rounds Played</p>
-              <p className="text-3xl font-bold">{loading ? '-' : rounds.length}</p>
+              <p className="text-3xl font-bold">{loading ? '-' : totalRounds}</p>
             </div>
             <History className="text-blue-600" size={40} />
           </div>

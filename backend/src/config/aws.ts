@@ -1,21 +1,38 @@
-import AWS from 'aws-sdk';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
+import { S3Client } from '@aws-sdk/client-s3';
+import { logger } from './logger';
 
-// Konfigurer AWS SDK
-AWS.config.update({
-  region: process.env.AWS_REGION || 'eu-north-1',
+const REGION = process.env.AWS_REGION || 'eu-north-1';
+
+// Configure AWS SDK v3
+const awsConfig = {
+  region: REGION,
   ...(process.env.AWS_ACCESS_KEY_ID && {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    },
   }),
+};
+
+logger.info(`🔧 Kobler til AWS region: ${REGION}`);
+
+// Create DynamoDB client
+const ddbClient = new DynamoDBClient(awsConfig);
+
+// Create DynamoDB Document Client with v3 syntax
+export const dynamodb = DynamoDBDocumentClient.from(ddbClient, {
+  marshallOptions: {
+    removeUndefinedValues: true,
+    convertClassInstanceToMap: true,
+  },
 });
 
-console.log('🔧 Kobler til AWS region:', process.env.AWS_REGION || 'eu-north-1');
+// Create S3 client
+export const s3Client = new S3Client(awsConfig);
 
-// Eksporter DynamoDB Document Client
-export const dynamodb = new AWS.DynamoDB.DocumentClient(); // Eksporter S3 Client (vi hopper over S3 lokalt)
-export const s3 = new AWS.S3();
-
-// Tabellnavn
+// Table names
 export const TABLES = {
   USERS: process.env.DYNAMODB_USERS_TABLE || 'golftracker-users',
   ROUNDS: process.env.DYNAMODB_ROUNDS_TABLE || 'golftracker-rounds',
