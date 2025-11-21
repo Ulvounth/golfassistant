@@ -7,7 +7,7 @@ import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { NewRoundPage } from './pages/NewRoundPage';
 import { EditRoundPage } from './pages/EditRoundPage';
-import { RoundHistoryPage } from './pages/RoundHistoryPage';
+import { CoursesPage } from './pages/CoursesPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { LeaderboardPage } from './pages/LeaderboardPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -52,7 +52,7 @@ function App() {
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="new-round" element={<NewRoundPage />} />
             <Route path="rounds/:id/edit" element={<EditRoundPage />} />
-            <Route path="history" element={<RoundHistoryPage />} />
+            <Route path="courses" element={<CoursesPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="leaderboard" element={<LeaderboardPage />} />
           </Route>

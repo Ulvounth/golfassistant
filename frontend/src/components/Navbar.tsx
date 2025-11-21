@@ -39,8 +39,8 @@ export function Navbar() {
                 <Link to="/new-round" className="text-gray-700 hover:text-primary-600 px-3 py-2">
                   New Round
                 </Link>
-                <Link to="/history" className="text-gray-700 hover:text-primary-600 px-3 py-2">
-                  History
+                <Link to="/courses" className="text-gray-700 hover:text-primary-600 px-3 py-2">
+                  Courses
                 </Link>
                 <Link to="/leaderboard" className="text-gray-700 hover:text-primary-600 px-3 py-2">
                   Leaderboard
@@ -105,11 +105,11 @@ export function Navbar() {
                   New Round
                 </Link>
                 <Link
-                  to="/history"
+                  to="/courses"
                   className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  History
+                  Courses
                 </Link>
                 <Link
                   to="/leaderboard"
