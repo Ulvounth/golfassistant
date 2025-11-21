@@ -20,7 +20,7 @@ export function CoursesPage() {
   useEffect(() => {
     if (searchQuery.trim()) {
       const filtered = courses.filter(
-        (course) =>
+        course =>
           course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           course.location.toLowerCase().includes(searchQuery.toLowerCase())
       );
@@ -88,7 +88,7 @@ export function CoursesPage() {
             type="text"
             placeholder="Search courses by name or location..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           />
         </div>
@@ -107,7 +107,7 @@ export function CoursesPage() {
         <div className="card">
           <p className="text-gray-600 text-sm">Unique Locations</p>
           <p className="text-2xl font-bold text-primary-600">
-            {new Set(courses.map((c) => c.location)).size}
+            {new Set(courses.map(c => c.location)).size}
           </p>
         </div>
       </div>
@@ -121,7 +121,7 @@ export function CoursesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCourses.map((course) => (
+          {filteredCourses.map(course => (
             <div key={course.id} className="card hover:shadow-lg transition-shadow">
               <div className="flex items-start justify-between mb-4">
                 <div>
@@ -136,7 +136,8 @@ export function CoursesPage() {
               {/* Holes */}
               <div className="mb-4">
                 <p className="text-sm text-gray-600">
-                  {course.holes.length} holes • Par {course.holes.reduce((sum, h) => sum + h.par, 0)}
+                  {course.holes.length} holes • Par{' '}
+                  {course.holes.reduce((sum, h) => sum + h.par, 0)}
                 </p>
               </div>
 
@@ -144,7 +145,7 @@ export function CoursesPage() {
               <div className="space-y-2">
                 <p className="text-xs font-semibold text-gray-600 uppercase">Tees</p>
                 <div className="grid grid-cols-2 gap-2">
-                  {Object.keys(course.rating).map((teeColor) => (
+                  {Object.keys(course.rating).map(teeColor => (
                     <div
                       key={teeColor}
                       className={`px-3 py-2 rounded-lg ${getTeeColorBadge(teeColor)}`}
