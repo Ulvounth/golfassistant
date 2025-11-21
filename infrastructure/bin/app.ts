@@ -9,7 +9,7 @@ import { MonitoringStack } from '../lib/monitoring-stack';
 /**
  * Main CDK App
  * Oppretter og organiserer alle stacks for GolfTracker
- * 
+ *
  * Production deployment order:
  * 1. DatabaseStack - DynamoDB tables
  * 2. StorageStack - S3 buckets

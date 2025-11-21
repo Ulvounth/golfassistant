@@ -49,7 +49,10 @@ export class ApiStack extends cdk.Stack {
         DYNAMODB_ROUNDS_TABLE: props.roundsTable.tableName,
         DYNAMODB_COURSES_TABLE: props.coursesTable.tableName,
         S3_BUCKET_NAME: props.profileBucket.bucketName,
-        JWT_SECRET: this.node.tryGetContext('jwtSecret') || process.env.JWT_SECRET || 'change-me-in-production',
+        JWT_SECRET:
+          this.node.tryGetContext('jwtSecret') ||
+          process.env.JWT_SECRET ||
+          'change-me-in-production',
         NODE_ENV: 'production',
         AWS_REGION: this.region,
       },

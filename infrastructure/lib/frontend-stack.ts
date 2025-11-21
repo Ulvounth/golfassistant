@@ -15,7 +15,7 @@ interface FrontendStackProps extends cdk.StackProps {
 
 /**
  * Stack for hosting React frontend via S3 + CloudFront
- * 
+ *
  * Features:
  * - S3 bucket for static files (private)
  * - CloudFront CDN for global distribution
@@ -52,11 +52,7 @@ export class FrontendStack extends cdk.Stack {
     // Certificate (if custom domain)
     let certificate;
     if (props?.certificateArn) {
-      certificate = acm.Certificate.fromCertificateArn(
-        this,
-        'Certificate',
-        props.certificateArn
-      );
+      certificate = acm.Certificate.fromCertificateArn(this, 'Certificate', props.certificateArn);
     }
 
     // CloudFront Distribution
@@ -115,18 +111,14 @@ export class FrontendStack extends cdk.Stack {
       new route53.ARecord(this, 'AliasRecord', {
         zone,
         recordName: props.domainName,
-        target: route53.RecordTarget.fromAlias(
-          new targets.CloudFrontTarget(this.distribution)
-        ),
+        target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(this.distribution)),
       });
 
       // IPv6 support
       new route53.AaaaRecord(this, 'AliasRecordIpv6', {
         zone,
         recordName: props.domainName,
-        target: route53.RecordTarget.fromAlias(
-          new targets.CloudFrontTarget(this.distribution)
-        ),
+        target: route53.RecordTarget.fromAlias(new targets.CloudFrontTarget(this.distribution)),
       });
     }
 

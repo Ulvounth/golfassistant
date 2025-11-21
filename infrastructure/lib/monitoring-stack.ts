@@ -18,7 +18,7 @@ interface MonitoringStackProps extends cdk.StackProps {
 
 /**
  * Stack for monitoring, alerting and dashboards
- * 
+ *
  * Features:
  * - CloudWatch alarms for Lambda errors, duration, throttles
  * - API Gateway monitoring (4xx, 5xx, latency)
@@ -41,9 +41,7 @@ export class MonitoringStack extends cdk.Stack {
 
     // Add email subscription if provided
     if (props.emailAddress) {
-      this.alertTopic.addSubscription(
-        new subscriptions.EmailSubscription(props.emailAddress)
-      );
+      this.alertTopic.addSubscription(new subscriptions.EmailSubscription(props.emailAddress));
     }
 
     // ============= Lambda Alarms =============
@@ -209,7 +207,10 @@ export class MonitoringStack extends cdk.Stack {
         title: 'Lambda Invocations',
         width: 12,
         left: [
-          props.apiFunction.metricInvocations({ statistic: 'Sum', period: cdk.Duration.minutes(5) }),
+          props.apiFunction.metricInvocations({
+            statistic: 'Sum',
+            period: cdk.Duration.minutes(5),
+          }),
         ],
       }),
       new cloudwatch.GraphWidget({
@@ -226,8 +227,14 @@ export class MonitoringStack extends cdk.Stack {
         title: 'Lambda Duration (ms)',
         width: 12,
         left: [
-          props.apiFunction.metricDuration({ statistic: 'Average', period: cdk.Duration.minutes(5) }),
-          props.apiFunction.metricDuration({ statistic: 'Maximum', period: cdk.Duration.minutes(5) }),
+          props.apiFunction.metricDuration({
+            statistic: 'Average',
+            period: cdk.Duration.minutes(5),
+          }),
+          props.apiFunction.metricDuration({
+            statistic: 'Maximum',
+            period: cdk.Duration.minutes(5),
+          }),
         ],
       }),
       new cloudwatch.GraphWidget({
@@ -244,16 +251,22 @@ export class MonitoringStack extends cdk.Stack {
       new cloudwatch.GraphWidget({
         title: 'API Gateway Requests',
         width: 12,
-        left: [
-          props.api.metricCount({ statistic: 'Sum', period: cdk.Duration.minutes(5) }),
-        ],
+        left: [props.api.metricCount({ statistic: 'Sum', period: cdk.Duration.minutes(5) })],
       }),
       new cloudwatch.GraphWidget({
         title: 'API Gateway Errors',
         width: 12,
         left: [
-          props.api.metricClientError({ statistic: 'Sum', period: cdk.Duration.minutes(5), label: '4xx Errors' }),
-          props.api.metricServerError({ statistic: 'Sum', period: cdk.Duration.minutes(5), label: '5xx Errors' }),
+          props.api.metricClientError({
+            statistic: 'Sum',
+            period: cdk.Duration.minutes(5),
+            label: '4xx Errors',
+          }),
+          props.api.metricServerError({
+            statistic: 'Sum',
+            period: cdk.Duration.minutes(5),
+            label: '5xx Errors',
+          }),
         ],
       })
     );
@@ -263,15 +276,26 @@ export class MonitoringStack extends cdk.Stack {
         title: 'API Gateway Latency (ms)',
         width: 12,
         left: [
-          props.api.metricLatency({ statistic: 'Average', period: cdk.Duration.minutes(5), label: 'Average' }),
-          props.api.metricLatency({ statistic: 'p99', period: cdk.Duration.minutes(5), label: 'P99' }),
+          props.api.metricLatency({
+            statistic: 'Average',
+            period: cdk.Duration.minutes(5),
+            label: 'Average',
+          }),
+          props.api.metricLatency({
+            statistic: 'p99',
+            period: cdk.Duration.minutes(5),
+            label: 'P99',
+          }),
         ],
       }),
       new cloudwatch.SingleValueWidget({
         title: 'Current Invocations',
         width: 12,
         metrics: [
-          props.apiFunction.metricInvocations({ statistic: 'Sum', period: cdk.Duration.minutes(1) }),
+          props.apiFunction.metricInvocations({
+            statistic: 'Sum',
+            period: cdk.Duration.minutes(1),
+          }),
         ],
       })
     );
@@ -282,16 +306,28 @@ export class MonitoringStack extends cdk.Stack {
         title: 'DynamoDB Read Capacity',
         width: 12,
         left: [
-          props.usersTable.metricConsumedReadCapacityUnits({ period: cdk.Duration.minutes(5), label: 'Users' }),
-          props.roundsTable.metricConsumedReadCapacityUnits({ period: cdk.Duration.minutes(5), label: 'Rounds' }),
+          props.usersTable.metricConsumedReadCapacityUnits({
+            period: cdk.Duration.minutes(5),
+            label: 'Users',
+          }),
+          props.roundsTable.metricConsumedReadCapacityUnits({
+            period: cdk.Duration.minutes(5),
+            label: 'Rounds',
+          }),
         ],
       }),
       new cloudwatch.GraphWidget({
         title: 'DynamoDB Write Capacity',
         width: 12,
         left: [
-          props.usersTable.metricConsumedWriteCapacityUnits({ period: cdk.Duration.minutes(5), label: 'Users' }),
-          props.roundsTable.metricConsumedWriteCapacityUnits({ period: cdk.Duration.minutes(5), label: 'Rounds' }),
+          props.usersTable.metricConsumedWriteCapacityUnits({
+            period: cdk.Duration.minutes(5),
+            label: 'Users',
+          }),
+          props.roundsTable.metricConsumedWriteCapacityUnits({
+            period: cdk.Duration.minutes(5),
+            label: 'Rounds',
+          }),
         ],
       })
     );
