@@ -1,91 +1,29 @@
-# Dependabot configuration for automatic dependency updates
-# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
-
+# Dependabot configuration - SIMPLIFIED
+# Only security updates and critical patches
 version: 2
 updates:
-  # Frontend dependencies
+  # Frontend dependencies - SECURITY ONLY
   - package-ecosystem: 'npm'
     directory: '/frontend'
     schedule:
-      interval: 'weekly'
-      day: 'monday'
-      time: '09:00'
-    open-pull-requests-limit: 5
+      interval: 'monthly'
+    open-pull-requests-limit: 2
     labels:
       - 'dependencies'
-      - 'frontend'
-    commit-message:
-      prefix: 'chore(frontend)'
-    groups:
-      # Group React-related updates together
-      react:
-        patterns:
-          - 'react*'
-          - '@types/react*'
-      # Group testing dependencies
-      testing:
-        patterns:
-          - 'vitest'
-          - '@vitest/*'
-          - 'jsdom'
-      # Group linting dependencies
-      linting:
-        patterns:
-          - 'eslint*'
-          - '@typescript-eslint/*'
-      # Group build tools
-      build-tools:
-        patterns:
-          - 'vite*'
-          - '@vitejs/*'
-          - 'typescript'
+      - 'security'
 
-  # Backend dependencies
+  # Backend dependencies - SECURITY ONLY  
   - package-ecosystem: 'npm'
     directory: '/backend'
     schedule:
-      interval: 'weekly'
-      day: 'monday'
-      time: '09:00'
-    open-pull-requests-limit: 5
-    labels:
-      - 'dependencies'
-      - 'backend'
-    commit-message:
-      prefix: 'chore(backend)'
-    groups:
-      # Group AWS SDK updates
-      aws-sdk:
-        patterns:
-          - '@aws-sdk/*'
-      # Group testing dependencies
-      testing:
-        patterns:
-          - 'jest'
-          - '@types/jest'
-          - 'ts-jest'
-      # Group Express and middleware
-      express:
-        patterns:
-          - 'express'
-          - '@types/express'
-          - 'cors'
-          - 'helmet'
-      # Group TypeScript and linting
-      typescript:
-        patterns:
-          - 'typescript'
-          - 'ts-node'
-          - 'eslint*'
-          - '@typescript-eslint/*'
-
-  # GitHub Actions
-  - package-ecosystem: 'github-actions'
-    directory: '/'
-    schedule:
       interval: 'monthly'
+    open-pull-requests-limit: 2
     labels:
       - 'dependencies'
-      - 'github-actions'
-    commit-message:
-      prefix: 'chore(ci)'
+      - 'security'
+
+  # GitHub Actions - disabled for now
+  # - package-ecosystem: 'github-actions'
+  #   directory: '/'
+  #   schedule:
+  #     interval: 'monthly'
