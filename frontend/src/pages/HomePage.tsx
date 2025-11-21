@@ -4,6 +4,8 @@ import { TrendingUp, Users, Award, Target, Trophy } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { leaderboardService } from '@/services/leaderboardService';
 import { LeaderboardEntry } from '@/types';
+import { RankBadge } from '@/components/RankBadge';
+import { formatHandicap } from '@/utils/formatters';
 
 /**
  * HomePage - landingsside
@@ -26,13 +28,6 @@ export function HomePage() {
     } finally {
       setLoadingLeaderboard(false);
     }
-  };
-
-  const getMedalEmoji = (rank: number) => {
-    if (rank === 1) return '🥇';
-    if (rank === 2) return '🥈';
-    if (rank === 3) return '🥉';
-    return `${rank}.`;
   };
 
   return (
@@ -82,7 +77,7 @@ export function HomePage() {
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-8 text-center font-bold text-sm">
-                          {getMedalEmoji(index + 1)}
+                          <RankBadge rank={index + 1} />
                         </div>
                         <div>
                           <p className="font-semibold text-sm">
@@ -95,7 +90,7 @@ export function HomePage() {
                       </div>
                       <div className="text-right">
                         <p className="text-lg font-bold text-primary-600">
-                          {player.handicap.toFixed(1)}
+                          {formatHandicap(player.handicap)}
                         </p>
                         <p className="text-xs text-gray-500">HCP</p>
                       </div>

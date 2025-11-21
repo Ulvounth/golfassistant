@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { leaderboardService } from '@/services/leaderboardService';
 import { LeaderboardEntry } from '@/types';
+import { RankBadge } from '@/components/RankBadge';
+import { UserAvatar } from '@/components/UserAvatar';
+import { formatHandicap } from '@/utils/formatters';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 /**
  * LeaderboardPage - leaderboard basert på handicap
@@ -26,20 +30,13 @@ export function LeaderboardPage() {
     }
   };
 
-  const getMedalEmoji = (rank: number) => {
-    if (rank === 1) return '🥇';
-    if (rank === 2) return '🥈';
-    if (rank === 3) return '🥉';
-    return `${rank}.`;
-  };
-
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-3xl font-bold mb-8">🏆 Leaderboard</h1>
 
       <div className="card">
         {loading ? (
-          <p className="text-gray-600">Loading leaderboard...</p>
+          <LoadingSpinner message="Loading leaderboard..." />
         ) : leaderboard.length === 0 ? (
           <p className="text-gray-600">No players found.</p>
         ) : (
@@ -58,12 +55,11 @@ export function LeaderboardPage() {
                   }`}
                 >
                   <div className="flex items-center space-x-4 flex-1">
-                    <div className="w-12 text-center font-bold text-lg">{getMedalEmoji(rank)}</div>
-
-                    <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-600">
-                      {entry.firstName.charAt(0)}
-                      {entry.lastName.charAt(0)}
+                    <div className="w-12 text-center font-bold text-lg">
+                      <RankBadge rank={rank} />
                     </div>
+
+                    <UserAvatar firstName={entry.firstName} lastName={entry.lastName} size="md" />
 
                     <div className="flex-1">
                       <p className="font-semibold">
@@ -82,7 +78,7 @@ export function LeaderboardPage() {
 
                   <div className="text-right">
                     <p className="text-2xl font-bold text-primary-600">
-                      {entry.handicap.toFixed(1)}
+                      {formatHandicap(entry.handicap)}
                     </p>
                     <p className="text-xs text-gray-500">HCP</p>
                   </div>

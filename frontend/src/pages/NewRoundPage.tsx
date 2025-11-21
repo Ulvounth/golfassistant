@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PlusCircle, X } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store/authStore';
@@ -8,6 +8,9 @@ import { roundService } from '@/services/roundService';
 import { userService, UserSearchResult } from '@/services/userService';
 import { GolfCourse, HoleScore } from '@/types';
 import { AddCourseModal } from '@/components/AddCourseModal';
+import { PlayerSearch } from '@/components/PlayerSearch';
+import { TeeColorBadge } from '@/components/TeeColorBadge';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 /**
  * NewRoundPage - side for å registrere ny golfrunde
@@ -23,9 +26,6 @@ export function NewRoundPage() {
   const [whichNine, setWhichNine] = useState<'front' | 'back'>('front');
   const [roundDate, setRoundDate] = useState<string>(new Date().toISOString().split('T')[0]); // YYYY-MM-DD format
   const [selectedPlayers, setSelectedPlayers] = useState<UserSearchResult[]>([]);
-  const [playerSearchQuery, setPlayerSearchQuery] = useState('');
-  const [playerSearchResults, setPlayerSearchResults] = useState<UserSearchResult[]>([]);
-  const [searchingPlayers, setSearchingPlayers] = useState(false);
   const [step, setStep] = useState(1); // 1: Select course/details, 2: Enter scores
   const [holeScores, setHoleScores] = useState<HoleScore[]>([]); // Your own scores
   const [playerScores, setPlayerScores] = useState<Record<string, HoleScore[]>>({}); // Scores for other players: playerId -> HoleScore[]
@@ -132,37 +132,6 @@ export function NewRoundPage() {
     setPlayerScores(newPlayerScores);
   };
 
-  const handlePlayerSearch = async (query: string) => {
-    setPlayerSearchQuery(query);
-
-    if (!query || query.length < 2) {
-      setPlayerSearchResults([]);
-      return;
-    }
-
-    setSearchingPlayers(true);
-    try {
-      const results = await userService.searchUsers(query);
-      // Filter out current user and already selected players
-      const currentUserId = useAuthStore.getState().user?.id;
-      const filtered = results.filter(
-        user => user.id !== currentUserId && !selectedPlayers.find(p => p.id === user.id)
-      );
-      setPlayerSearchResults(filtered);
-    } catch (error) {
-      console.error('Failed to search users:', error);
-      setPlayerSearchResults([]);
-    } finally {
-      setSearchingPlayers(false);
-    }
-  };
-
-  const handleAddPlayer = (player: UserSearchResult) => {
-    setSelectedPlayers([...selectedPlayers, player]);
-    setPlayerSearchQuery('');
-    setPlayerSearchResults([]);
-  };
-
   const handleRemovePlayer = (playerId: string) => {
     setSelectedPlayers(selectedPlayers.filter(p => p.id !== playerId));
   };
@@ -247,7 +216,7 @@ export function NewRoundPage() {
 
             {/* Course list */}
             {loading ? (
-              <p className="text-gray-600">Loading courses...</p>
+              <LoadingSpinner message="Loading courses..." />
             ) : courses.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-gray-600 mb-4">
@@ -409,98 +378,12 @@ export function NewRoundPage() {
               </div>
 
               {/* Players selector */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Who played with you? (optional)
-                </label>
-
-                {/* Selected players */}
-                {selectedPlayers.length > 0 && (
-                  <div className="mb-3 flex flex-wrap gap-2">
-                    {selectedPlayers.map(player => (
-                      <div
-                        key={player.id}
-                        className="inline-flex items-center gap-2 px-3 py-1 bg-primary-100 text-primary-800 rounded-full text-sm"
-                      >
-                        <span>
-                          {player.firstName} {player.lastName}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemovePlayer(player.id)}
-                          className="hover:text-primary-900"
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Search input */}
-                <div className="relative">
-                  <input
-                    type="text"
-                    className="input"
-                    placeholder="Search for users..."
-                    value={playerSearchQuery}
-                    onChange={e => handlePlayerSearch(e.target.value)}
-                  />
-
-                  {/* Search results dropdown */}
-                  {playerSearchResults.length > 0 && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                      {playerSearchResults.map(user => (
-                        <button
-                          key={user.id}
-                          type="button"
-                          onClick={() => handleAddPlayer(user)}
-                          className="w-full px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-left"
-                        >
-                          <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-sm font-semibold">
-                            {user.firstName.charAt(0)}
-                            {user.lastName.charAt(0)}
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-medium">
-                              {user.firstName} {user.lastName}
-                            </p>
-                            <p className="text-sm text-gray-600">
-                              Handicap: {user.handicap.toFixed(1)}
-                            </p>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* No results message */}
-                  {!searchingPlayers &&
-                    playerSearchQuery.length >= 2 &&
-                    playerSearchResults.length === 0 && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border border-orange-200 rounded-lg shadow-lg p-4">
-                        <div className="flex items-start gap-3">
-                          <span className="text-orange-500 text-lg">⚠️</span>
-                          <div>
-                            <p className="font-medium text-gray-900 mb-1">No users found</p>
-                            <p className="text-sm text-gray-600">
-                              The player "{playerSearchQuery}" is not registered in the system. Only
-                              registered users can be added to a round.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                  {searchingPlayers && (
-                    <div className="absolute right-3 top-3 text-gray-400">Searching...</div>
-                  )}
-                </div>
-
-                <p className="text-xs text-gray-500 mt-1">
-                  Search for users who played in the round (minimum 2 characters)
-                </p>
-              </div>
+              <PlayerSearch
+                selectedPlayers={selectedPlayers}
+                onAddPlayer={player => setSelectedPlayers([...selectedPlayers, player])}
+                onRemovePlayer={handleRemovePlayer}
+                currentUserId={useAuthStore.getState().user?.id}
+              />
 
               {/* Next step button */}
               <div className="flex justify-end">
@@ -527,10 +410,7 @@ export function NewRoundPage() {
             <p className="text-sm text-gray-700">
               <strong>{courses.find(c => c.id === selectedCourseId)?.name}</strong>
               {' • '}
-              {selectedTee === 'white' && '⚪ White tee'}
-              {selectedTee === 'yellow' && '🟡 Yellow tee'}
-              {selectedTee === 'blue' && '🔵 Blue tee'}
-              {selectedTee === 'red' && '🔴 Red tee'}
+              <TeeColorBadge color={selectedTee} />
               {' • '}
               {numberOfHoles} holes
               {numberOfHoles === 9 && ` (${whichNine === 'front' ? 'Front 9' : 'Back 9'})`}

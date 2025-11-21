@@ -1,11 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Pencil, Camera } from 'lucide-react';
+import { Camera } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store/authStore';
 import { roundService } from '@/services/roundService';
 import { userService } from '@/services/userService';
 import { GolfRound } from '@/types';
+import { UserAvatar } from '@/components/UserAvatar';
+import { RoundCard } from '@/components/RoundCard';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { formatHandicap } from '@/utils/formatters';
 
 /**
  * ProfilePage - brukerens profilside med runde-historikk
@@ -97,24 +101,6 @@ export function ProfilePage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('nb-NO', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
-  };
-
-  const getScoreColor = (score: number, par: number) => {
-    const diff = score - par;
-    if (diff <= -2) return 'text-blue-600 font-bold'; // Eagle or better
-    if (diff === -1) return 'text-green-600 font-semibold'; // Birdie
-    if (diff === 0) return 'text-gray-700'; // Par
-    if (diff === 1) return 'text-orange-600'; // Bogey
-    return 'text-red-600'; // Double bogey or worse
-  };
-
   const handleImageClick = () => {
     fileInputRef.current?.click();
   };
@@ -159,18 +145,12 @@ export function ProfilePage() {
       <div className="card mb-6">
         <div className="flex items-center space-x-6">
           <div className="relative group">
-            {user?.profileImageUrl ? (
-              <img
-                src={user.profileImageUrl}
-                alt={`${user.firstName} ${user.lastName}`}
-                className="w-24 h-24 rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center text-3xl font-bold text-gray-600">
-                {user?.firstName.charAt(0)}
-                {user?.lastName.charAt(0)}
-              </div>
-            )}
+            <UserAvatar
+              firstName={user?.firstName || ''}
+              lastName={user?.lastName || ''}
+              imageUrl={user?.profileImageUrl}
+              size="lg"
+            />
             <button
               onClick={handleImageClick}
               disabled={uploading}
@@ -198,7 +178,7 @@ export function ProfilePage() {
             </h2>
             <p className="text-gray-600">{user?.email}</p>
             <p className="text-primary-600 font-semibold mt-1">
-              Handicap: {user?.handicap.toFixed(1)}
+              Handicap: {formatHandicap(user?.handicap || 0)}
             </p>
           </div>
         </div>
@@ -208,7 +188,7 @@ export function ProfilePage() {
         <h3 className="text-xl font-semibold mb-4">My Rounds</h3>
 
         {loading ? (
-          <p className="text-gray-600">Loading rounds...</p>
+          <LoadingSpinner message="Loading rounds..." />
         ) : rounds.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-600 mb-4">You haven't registered any rounds yet.</p>
@@ -219,64 +199,13 @@ export function ProfilePage() {
         ) : (
           <div className="space-y-4">
             {rounds.map(round => (
-              <div key={round.id} className="border rounded-lg p-4 hover:bg-gray-50">
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-lg">{round.courseName}</h4>
-                    <p className="text-sm text-gray-600">{formatDate(round.date)}</p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="text-right">
-                      <p
-                        className={`text-2xl font-bold ${getScoreColor(
-                          round.totalScore,
-                          round.totalPar
-                        )}`}
-                      >
-                        {round.totalScore}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        Par {round.totalPar}
-                        {' • '}
-                        {round.totalScore - round.totalPar > 0 ? '+' : ''}
-                        {round.totalScore - round.totalPar}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => navigate(`/rounds/${round.id}/edit`)}
-                      className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      title="Edit round"
-                    >
-                      <Pencil className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex gap-4 text-sm text-gray-600 mt-2">
-                  <span>
-                    {round.teeColor === 'white' && '⚪ White'}
-                    {round.teeColor === 'yellow' && '🟡 Yellow'}
-                    {round.teeColor === 'blue' && '🔵 Blue'}
-                    {round.teeColor === 'red' && '🔴 Red'}
-                  </span>
-                  <span>• {round.numberOfHoles} holes</span>
-                  <span>• Differential: {round.scoreDifferential.toFixed(1)}</span>
-                </div>
-
-                {round.players && round.players.length > 0 && (
-                  <div className="mt-2 pt-2 border-t text-sm text-gray-600">
-                    <span className="font-medium">👥 Played with: </span>
-                    <span className="ml-1">
-                      {round.players.map((playerId, index) => (
-                        <span key={playerId}>
-                          {playerNames[playerId] || 'Loading...'}
-                          {index < round.players.length - 1 && ', '}
-                        </span>
-                      ))}
-                    </span>
-                  </div>
-                )}
-              </div>
+              <RoundCard
+                key={round.id}
+                round={round}
+                showEditButton
+                onEdit={id => navigate(`/rounds/${id}/edit`)}
+                playerNames={playerNames}
+              />
             ))}
 
             {hasMore && (

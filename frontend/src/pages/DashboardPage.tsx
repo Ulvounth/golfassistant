@@ -6,6 +6,8 @@ import { roundService } from '@/services/roundService';
 import { leaderboardService } from '@/services/leaderboardService';
 import { userService } from '@/services/userService';
 import { GolfRound } from '@/types';
+import { formatDate, getScoreColor, formatScoreDiff, formatHandicap } from '@/utils/formatters';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 /**
  * DashboardPage - brukerens dashboard
@@ -57,24 +59,6 @@ export function DashboardPage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('nb-NO', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
-  };
-
-  const getScoreColor = (score: number, par: number) => {
-    const diff = score - par;
-    if (diff <= -2) return 'text-blue-600 font-bold';
-    if (diff === -1) return 'text-green-600 font-semibold';
-    if (diff === 0) return 'text-gray-700';
-    if (diff === 1) return 'text-orange-600';
-    return 'text-red-600';
-  };
-
   const recentRounds = rounds.slice(0, 5);
 
   return (
@@ -87,7 +71,9 @@ export function DashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm">Your Handicap</p>
-              <p className="text-3xl font-bold text-primary-600">{user?.handicap.toFixed(1)}</p>
+              <p className="text-3xl font-bold text-primary-600">
+                {formatHandicap(user?.handicap || 0)}
+              </p>
             </div>
             <TrendingUp className="text-primary-600" size={40} />
           </div>
@@ -146,7 +132,7 @@ export function DashboardPage() {
       <div className="card mt-8">
         <h2 className="text-2xl font-bold mb-4">Recent Rounds</h2>
         {loading ? (
-          <p className="text-gray-600">Loading...</p>
+          <LoadingSpinner message="Loading..." />
         ) : recentRounds.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
             <p>You haven't registered any rounds yet.</p>
@@ -173,10 +159,7 @@ export function DashboardPage() {
                       {round.totalScore}
                     </p>
                     <p className="text-sm text-gray-600">
-                      Par {round.totalPar}
-                      {' • '}
-                      {round.totalScore - round.totalPar > 0 ? '+' : ''}
-                      {round.totalScore - round.totalPar}
+                      Par {round.totalPar} • {formatScoreDiff(round.totalScore, round.totalPar)}
                     </p>
                   </div>
                 </div>
