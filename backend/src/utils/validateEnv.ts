@@ -5,7 +5,6 @@ import { logger } from '../config/logger';
  */
 const REQUIRED_ENV_VARS = [
   'JWT_SECRET',
-  'AWS_REGION',
   'DYNAMODB_USERS_TABLE',
   'DYNAMODB_ROUNDS_TABLE',
   'DYNAMODB_COURSES_TABLE',
@@ -20,6 +19,7 @@ const OPTIONAL_ENV_VARS = {
   LOG_LEVEL: 'info',
   CORS_ORIGIN: 'http://localhost:3000',
   S3_BUCKET_NAME: 'golftracker-profiles',
+  AWS_REGION: 'eu-north-1', // Default for Lambda
 } as const;
 
 /**

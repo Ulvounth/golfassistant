@@ -23,8 +23,8 @@ export const logger = winston.createLogger({
   ],
 });
 
-// Add file transports in production
-if (process.env.NODE_ENV === 'production') {
+// Add file transports in production (but NOT in Lambda - use CloudWatch instead)
+if (process.env.NODE_ENV === 'production' && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
   logger.add(
     new winston.transports.File({
       filename: 'logs/error.log',
@@ -38,6 +38,11 @@ if (process.env.NODE_ENV === 'production') {
       format: combine(timestamp(), winston.format.json()),
     })
   );
+}
+
+// In Lambda, logs go to CloudWatch automatically via console
+if (process.env.AWS_LAMBDA_FUNCTION_NAME) {
+  logger.info('Running in AWS Lambda - logs will be sent to CloudWatch');
 }
 
 // Create a stream for Morgan HTTP logging

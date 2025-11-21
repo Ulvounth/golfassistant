@@ -39,16 +39,19 @@ export class ApiStack extends cdk.Stack {
     });
 
     const apiHandler = new lambda.Function(this, 'ApiHandler', {
-      runtime: lambda.Runtime.NODEJS_22_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromAsset('../backend/dist'), // Bygg backend først
+      runtime: lambda.Runtime.NODEJS_18_X, // Use 18.x - supported until April 2026
+      handler: 'lambda.handler', // Back to full lambda
+      code: lambda.Code.fromAsset('../backend/dist', {
+        exclude: ['index.js'], // Exclude Express server file
+      }),
       environment: {
         DYNAMODB_USERS_TABLE: props.usersTable.tableName,
         DYNAMODB_ROUNDS_TABLE: props.roundsTable.tableName,
         DYNAMODB_COURSES_TABLE: props.coursesTable.tableName,
         S3_BUCKET_NAME: props.profileBucket.bucketName,
-        JWT_SECRET: process.env.JWT_SECRET || 'change-me-in-production',
+        JWT_SECRET: this.node.tryGetContext('jwtSecret') || process.env.JWT_SECRET || 'change-me-in-production',
         NODE_ENV: 'production',
+        AWS_REGION: this.region,
       },
       timeout: cdk.Duration.seconds(30),
       memorySize: 512,
