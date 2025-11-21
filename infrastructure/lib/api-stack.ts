@@ -39,7 +39,7 @@ export class ApiStack extends cdk.Stack {
     });
 
     const apiHandler = new lambda.Function(this, 'ApiHandler', {
-      runtime: lambda.Runtime.NODEJS_20_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'index.handler',
       code: lambda.Code.fromAsset('../backend/dist'), // Bygg backend først
       environment: {
