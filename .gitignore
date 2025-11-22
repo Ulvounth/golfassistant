@@ -32,9 +32,12 @@ Thumbs.db
 
 # CDK
 cdk.out/
-*.js
-*.d.ts
+infrastructure/**/*.js
+infrastructure/**/*.d.ts
 !jest.config.js
+!frontend/tailwind.config.js
+!frontend/postcss.config.js
+!frontend/vite.config.ts
 
 # AWS
 .aws-sam/
