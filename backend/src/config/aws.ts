@@ -10,12 +10,13 @@ const REGION = process.env.AWS_REGION || 'eu-north-1';
 // Only use explicit credentials in local development (non-Lambda environment)
 const awsConfig = {
   region: REGION,
-  ...(!process.env.AWS_LAMBDA_FUNCTION_NAME && process.env.AWS_ACCESS_KEY_ID && {
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-    },
-  }),
+  ...(!process.env.AWS_LAMBDA_FUNCTION_NAME &&
+    process.env.AWS_ACCESS_KEY_ID && {
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+      },
+    }),
 };
 
 logger.info(`🔧 Kobler til AWS region: ${REGION}`);

@@ -1,12 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    './index.html',
-    './src/**/*.{js,ts,jsx,tsx}',
-  ],
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   safelist: [
     {
-      pattern: /(bg|text|border)-(primary|gray|red|green|blue|yellow)-(50|100|200|300|400|500|600|700|800|900)/,
+      pattern:
+        /(bg|text|border)-(primary|gray|red|green|blue|yellow)-(50|100|200|300|400|500|600|700|800|900)/,
     },
     {
       pattern: /(p|m|px|py|pt|pb|pl|pr|mx|my|mt|mb|ml|mr)-(0|1|2|3|4|5|6|7|8|9|10|12|16|20|24)/,
