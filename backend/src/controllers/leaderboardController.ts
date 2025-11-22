@@ -9,9 +9,11 @@ import { logger } from '../config/logger';
  */
 export const getLeaderboard = async (req: Request, res: Response): Promise<void> => {
   try {
+    console.log('[LEADERBOARD] Starting getLeaderboard...');
     const limit = parseInt(req.query.limit as string) || 50;
 
     // Hent alle brukere og sorter etter handicap
+    console.log('[LEADERBOARD] Scanning users table...');
     const usersResult = await dynamodb.send(
       new ScanCommand({
         TableName: TABLES.USERS,
@@ -20,6 +22,7 @@ export const getLeaderboard = async (req: Request, res: Response): Promise<void>
     );
 
     const users = usersResult.Items || [];
+    console.log(`[LEADERBOARD] Found ${users.length} users`);
 
     // Sorter etter handicap (lavest først)
     const sortedUsers = users.sort((a, b) => a.handicap - b.handicap);

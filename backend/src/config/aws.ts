@@ -6,9 +6,11 @@ import { logger } from './logger';
 const REGION = process.env.AWS_REGION || 'eu-north-1';
 
 // Configure AWS SDK v3
+// In Lambda, don't specify credentials - it will use the Lambda execution role
+// Only use explicit credentials in local development (non-Lambda environment)
 const awsConfig = {
   region: REGION,
-  ...(process.env.AWS_ACCESS_KEY_ID && {
+  ...(!process.env.AWS_LAMBDA_FUNCTION_NAME && process.env.AWS_ACCESS_KEY_ID && {
     credentials: {
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
