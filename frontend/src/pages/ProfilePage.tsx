@@ -139,12 +139,12 @@ export function ProfilePage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-8">My Profile</h1>
+    <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">My Profile</h1>
 
       <div className="card mb-6">
-        <div className="flex items-center space-x-6">
-          <div className="relative group">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
+          <div className="relative group flex-shrink-0">
             <UserAvatar
               firstName={user?.firstName || ''}
               lastName={user?.lastName || ''}
@@ -157,11 +157,11 @@ export function ProfilePage() {
               className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
               title="Change profile picture"
             >
-              <Camera className="w-8 h-8 text-white" />
+              <Camera className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
             </button>
             {uploading && (
               <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-white"></div>
               </div>
             )}
             <input
@@ -172,12 +172,12 @@ export function ProfilePage() {
               className="hidden"
             />
           </div>
-          <div>
-            <h2 className="text-2xl font-semibold">
+          <div className="text-center sm:text-left min-w-0 flex-1">
+            <h2 className="text-xl sm:text-2xl font-semibold truncate">
               {user?.firstName} {user?.lastName}
             </h2>
-            <p className="text-gray-600">{user?.email}</p>
-            <p className="text-primary-600 font-semibold mt-1">
+            <p className="text-sm sm:text-base text-gray-600 truncate">{user?.email}</p>
+            <p className="text-primary-600 font-semibold mt-1 text-sm sm:text-base">
               Handicap: {formatHandicap(user?.handicap || 0)}
             </p>
           </div>
@@ -185,7 +185,7 @@ export function ProfilePage() {
       </div>
 
       <div className="card">
-        <h3 className="text-xl font-semibold mb-4">My Rounds</h3>
+        <h3 className="text-lg sm:text-xl font-semibold mb-4">My Rounds</h3>
 
         {loading ? (
           <LoadingSpinner message="Loading rounds..." />
