@@ -1,4 +1,4 @@
-﻿# GolfTracker ⛳
+﻿# GolfAssistant ⛳
 
 [![CI/CD Pipeline](https://github.com/Ulvounth/golftracker/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Ulvounth/golftracker/actions/workflows/ci-cd.yml)
 

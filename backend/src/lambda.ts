@@ -44,7 +44,7 @@ app.use('/api/leaderboard', leaderboardRoutes);
 // API Root & Health check - Welcome page with full documentation
 app.get(['/api', '/api/health'], (req, res) => {
   res.json({
-    name: 'GolfTracker API',
+    name: 'GolfAssistant API',
     version: '1.0.0',
     status: 'OK',
     timestamp: new Date().toISOString(),

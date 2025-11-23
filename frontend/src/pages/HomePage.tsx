@@ -41,7 +41,7 @@ export function HomePage() {
               Your digital <span className="text-primary-600">golf assistant</span>
             </h1>
             <p className="text-base sm:text-lg lg:text-xl text-gray-600 mb-6 sm:mb-8">
-              Track rounds, follow your handicap, and compete with friends. GolfTracker makes it
+              Track rounds, follow your handicap, and compete with friends. GolfAssistant makes it
               easy to keep track of your golf progression.
             </p>
             {!isAuthenticated && (

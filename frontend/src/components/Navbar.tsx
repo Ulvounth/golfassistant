@@ -42,7 +42,7 @@ export function Navbar() {
           {/* Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2">
-              <span className="text-2xl font-bold text-primary-600">⛳ GolfTracker</span>
+              <span className="text-2xl font-bold text-primary-600">⛳ GolfAssistant</span>
             </Link>
           </div>
 
