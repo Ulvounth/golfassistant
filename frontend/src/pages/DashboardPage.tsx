@@ -62,103 +62,109 @@ export function DashboardPage() {
   const recentRounds = rounds.slice(0, 5);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-8">Welcome, {user?.firstName}! 👋</h1>
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">
+        Welcome, {user?.firstName}! 👋
+      </h1>
 
-      {/* Stats Cards */}
-      <div className="grid md:grid-cols-3 gap-6 mb-8">
+      {/* Stats Cards - Mobile optimized */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <div className="card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm">Your Handicap</p>
-              <p className="text-3xl font-bold text-primary-600">
+              <p className="text-gray-600 text-xs sm:text-sm">Your Handicap</p>
+              <p className="text-2xl sm:text-3xl font-bold text-primary-600">
                 {formatHandicap(user?.handicap || 0)}
               </p>
             </div>
-            <TrendingUp className="text-primary-600" size={40} />
+            <TrendingUp className="text-primary-600 flex-shrink-0" size={32} />
           </div>
         </div>
 
         <div className="card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm">Rounds Played</p>
-              <p className="text-3xl font-bold">{loading ? '-' : totalRounds}</p>
+              <p className="text-gray-600 text-xs sm:text-sm">Rounds Played</p>
+              <p className="text-2xl sm:text-3xl font-bold">{loading ? '-' : totalRounds}</p>
             </div>
-            <History className="text-blue-600" size={40} />
+            <History className="text-blue-600 flex-shrink-0" size={32} />
           </div>
         </div>
 
         <div className="card">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-600 text-sm">Ranking</p>
-              <p className="text-3xl font-bold">{loading ? '-' : ranking ? `#${ranking}` : '-'}</p>
+              <p className="text-gray-600 text-xs sm:text-sm">Ranking</p>
+              <p className="text-2xl sm:text-3xl font-bold">
+                {loading ? '-' : ranking ? `#${ranking}` : '-'}
+              </p>
             </div>
-            <Trophy className="text-yellow-600" size={40} />
+            <Trophy className="text-yellow-600 flex-shrink-0" size={32} />
           </div>
         </div>
       </div>
 
-      {/* Quick Actions */}
+      {/* Quick Actions - Mobile optimized */}
       <div className="card">
-        <h2 className="text-2xl font-bold mb-4">Quick Actions</h2>
-        <div className="grid md:grid-cols-2 gap-4">
+        <h2 className="text-xl sm:text-2xl font-bold mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <Link
             to="/new-round"
-            className="flex items-center space-x-4 p-6 border-2 border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all"
+            className="flex items-center gap-3 sm:gap-4 p-4 sm:p-6 border-2 border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all"
           >
-            <PlusCircle className="text-primary-600" size={32} />
-            <div>
-              <h3 className="font-semibold text-lg">Register New Round</h3>
-              <p className="text-gray-600 text-sm">Add a new golf round</p>
+            <PlusCircle className="text-primary-600 flex-shrink-0" size={28} />
+            <div className="min-w-0">
+              <h3 className="font-semibold text-base sm:text-lg">Register New Round</h3>
+              <p className="text-gray-600 text-xs sm:text-sm">Add a new golf round</p>
             </div>
           </Link>
 
           <Link
             to="/profile"
-            className="flex items-center space-x-4 p-6 border-2 border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all"
+            className="flex items-center gap-3 sm:gap-4 p-4 sm:p-6 border-2 border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all"
           >
-            <History className="text-blue-600" size={32} />
-            <div>
-              <h3 className="font-semibold text-lg">View History</h3>
-              <p className="text-gray-600 text-sm">Overview of all your rounds</p>
+            <History className="text-blue-600 flex-shrink-0" size={28} />
+            <div className="min-w-0">
+              <h3 className="font-semibold text-base sm:text-lg">View History</h3>
+              <p className="text-gray-600 text-xs sm:text-sm">Overview of all your rounds</p>
             </div>
           </Link>
         </div>
       </div>
 
       {/* Recent Rounds */}
-      <div className="card mt-8">
-        <h2 className="text-2xl font-bold mb-4">Recent Rounds</h2>
+      <div className="card mt-6 sm:mt-8">
+        <h2 className="text-xl sm:text-2xl font-bold mb-4">Recent Rounds</h2>
         {loading ? (
           <LoadingSpinner message="Loading..." />
         ) : recentRounds.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
-            <p>You haven't registered any rounds yet.</p>
-            <Link to="/new-round" className="btn-primary mt-4 inline-block">
+            <p className="text-sm sm:text-base">You haven't registered any rounds yet.</p>
+            <Link to="/new-round" className="btn-primary mt-4 inline-block text-sm sm:text-base">
               Register your first round
             </Link>
           </div>
         ) : (
           <div className="space-y-3">
             {recentRounds.map(round => (
-              <div key={round.id} className="border rounded-lg p-4 hover:bg-gray-50">
+              <div key={round.id} className="border rounded-lg p-3 sm:p-4 hover:bg-gray-50">
                 <div className="flex justify-between items-center">
-                  <div>
-                    <h4 className="font-semibold">{round.courseName}</h4>
-                    <p className="text-sm text-gray-600">{formatDate(round.date)}</p>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-semibold text-sm sm:text-base truncate">
+                      {round.courseName}
+                    </h4>
+                    <p className="text-xs sm:text-sm text-gray-600">{formatDate(round.date)}</p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right flex-shrink-0 ml-2">
                     <p
-                      className={`text-2xl font-bold ${getScoreColor(
+                      className={`text-xl sm:text-2xl font-bold ${getScoreColor(
                         round.totalScore,
                         round.totalPar
                       )}`}
                     >
                       {round.totalScore}
                     </p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-xs sm:text-sm text-gray-600">
                       Par {round.totalPar} • {formatScoreDiff(round.totalScore, round.totalPar)}
                     </p>
                   </div>
@@ -168,7 +174,7 @@ export function DashboardPage() {
             {rounds.length > 5 && (
               <Link
                 to="/profile"
-                className="block text-center text-primary-600 hover:underline pt-2"
+                className="block text-center text-primary-600 hover:underline pt-2 text-sm sm:text-base"
               >
                 View all {rounds.length} rounds →
               </Link>
