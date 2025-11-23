@@ -53,10 +53,16 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12 bg-gradient-to-br from-primary-50 via-white to-green-50">
       <div className="max-w-md w-full">
-        <div className="card">
-          <h2 className="text-3xl font-bold text-center mb-8">Sign Up</h2>
+        <div className="card shadow-2xl">
+          <div className="text-center mb-8">
+            <div className="inline-block p-3 bg-primary-100 rounded-full mb-4">
+              <span className="text-4xl">⛳</span>
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900">Create Account</h2>
+            <p className="text-gray-600 mt-2">Start tracking your golf journey</p>
+          </div>
 
           {error && <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg mb-4">{error}</div>}
 

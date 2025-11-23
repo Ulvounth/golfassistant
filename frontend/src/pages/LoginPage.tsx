@@ -38,10 +38,16 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 bg-gradient-to-br from-primary-50 via-white to-blue-50">
       <div className="max-w-md w-full">
-        <div className="card">
-          <h2 className="text-3xl font-bold text-center mb-8">Log In</h2>
+        <div className="card shadow-2xl">
+          <div className="text-center mb-8">
+            <div className="inline-block p-3 bg-primary-100 rounded-full mb-4">
+              <span className="text-4xl">⛳</span>
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900">Welcome Back</h2>
+            <p className="text-gray-600 mt-2">Log in to your account</p>
+          </div>
 
           {redirectTo !== '/dashboard' && (
             <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg mb-4 text-sm">
