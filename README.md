@@ -8,7 +8,9 @@ Your digital golf assistant - track rounds, follow your handicap, and compete wi
 
 **Production App:** [https://golfassistant.vercel.app](https://golfassistant.vercel.app)
 
-**API Endpoint:** `https://9nln867ik6.execute-api.eu-north-1.amazonaws.com/prod/api`
+**API Health:** `https://9nln867ik6.execute-api.eu-north-1.amazonaws.com/prod/api/health`
+
+**API Documentation:** See [API Endpoints](#api-endpoints) below
 
 ## 🛠️ Tech Stack
 

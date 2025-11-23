@@ -105,8 +105,15 @@ export class ApiStack extends cdk.Stack {
     // Lambda integration
     const lambdaIntegration = new apigateway.LambdaIntegration(apiHandler);
 
-    // API Routes - proxy alle requests til Lambda
+    // API Routes
     const apiResource = this.api.root.addResource('api');
+
+    // Add explicit GET method for /api root endpoint
+    apiResource.addMethod('GET', lambdaIntegration, {
+      authorizationType: apigateway.AuthorizationType.NONE,
+    });
+
+    // Proxy for all /api/* sub-routes
     apiResource.addProxy({
       defaultIntegration: lambdaIntegration,
       anyMethod: true,
