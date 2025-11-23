@@ -2,7 +2,10 @@ name: Dependency Review
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, develop]
+  # Run on schedule to keep badge status updated
+  schedule:
+    - cron: '0 0 * * 0' # Weekly on Sundays
 
 permissions:
   contents: read
@@ -12,6 +15,8 @@ jobs:
   dependency-review:
     name: Review Dependencies
     runs-on: ubuntu-latest
+    # Only run dependency-review-action on PRs
+    if: github.event_name == 'pull_request'
 
     steps:
       - name: Checkout code
@@ -22,3 +27,26 @@ jobs:
         with:
           fail-on-severity: high
           comment-summary-in-pr: always
+
+  dependency-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    # Run audit on schedule or PR
+    if: github.event_name == 'schedule' || github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Audit Backend
+        working-directory: ./backend
+        run: npm audit --audit-level=moderate || true
+
+      - name: Audit Frontend
+        working-directory: ./frontend
+        run: npm audit --audit-level=moderate || true
