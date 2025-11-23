@@ -1,13 +1,12 @@
 ﻿# GolfTracker ⛳
 
-[![CI/CD Pipeline](https://github.com/Ulvounth/golftracker/actions/workflows/ci.yml/badge.svg)](https://github.com/Ulvounth/golftracker/actions/workflows/ci.yml)
-[![Dependency Review](https://github.com/Ulvounth/golftracker/actions/workflows/dependency-review.yml/badge.svg)](https://github.com/Ulvounth/golftracker/actions/workflows/dependency-review.yml)
+[![CI/CD Pipeline](https://github.com/Ulvounth/golftracker/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Ulvounth/golftracker/actions/workflows/ci-cd.yml)
 
 Your digital golf assistant - track rounds, follow your handicap, and compete with friends.
 
 ## 🚀 Live Demo
 
-**Production App:** [https://golftracker-phi.vercel.app](https://golftracker-phi.vercel.app)
+**Production App:** [https://golfassistant.vercel.app](https://golfassistant.vercel.app)
 
 **API Endpoint:** `https://9nln867ik6.execute-api.eu-north-1.amazonaws.com/prod/api`
 
