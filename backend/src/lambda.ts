@@ -41,6 +41,43 @@ app.use('/api/rounds', roundRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 
+// API Root - Welcome page
+app.get('/api', (req, res) => {
+  res.json({
+    name: 'GolfTracker API',
+    version: '1.0.0',
+    status: 'running',
+    endpoints: {
+      health: '/api/health',
+      auth: {
+        register: 'POST /api/auth/register',
+        login: 'POST /api/auth/login',
+      },
+      user: {
+        profile: 'GET /api/user/profile',
+        updateProfile: 'PUT /api/user/profile',
+        uploadImage: 'POST /api/user/profile/image',
+      },
+      rounds: {
+        list: 'GET /api/rounds',
+        create: 'POST /api/rounds',
+        getById: 'GET /api/rounds/:id',
+        update: 'PUT /api/rounds/:id',
+        delete: 'DELETE /api/rounds/:id',
+      },
+      courses: {
+        list: 'GET /api/courses',
+        create: 'POST /api/courses',
+      },
+      leaderboard: {
+        topPlayers: 'GET /api/leaderboard',
+      },
+    },
+    documentation: 'https://github.com/Ulvounth/golftracker',
+    frontend: 'https://golfassistant.vercel.app',
+  });
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
