@@ -5,6 +5,7 @@ import { logger } from '../config/logger';
 /**
  * Beregn og oppdater brukerens handicap basert på WHS (World Handicap System)
  * Handicap = gjennomsnitt av de 8 beste score differentials av de siste 20 rundene
+ * Test change to verify file tracking
  */
 export const updateUserHandicap = async (userId: string): Promise<void> => {
   try {
