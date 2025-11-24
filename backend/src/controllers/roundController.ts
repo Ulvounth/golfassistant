@@ -37,8 +37,6 @@ export const calculateScoreDifferential = (
   return ((adjustedScore - adjustedRating) * 113) / slopeRating;
 };
 
-
-
 /**
  * GET /api/rounds?limit=20&nextToken=...
  * Hent runder for innlogget bruker med paginering
@@ -474,7 +472,7 @@ export const deleteRound = async (req: Request, res: Response): Promise<void> =>
 
     // Finn alle relaterte runder (samme dato/bane med andre spillere)
     let relatedRounds: Record<string, unknown>[] = [];
-    
+
     if (deleteRelated && round.players && round.players.length > 0) {
       // Slett alle spillernes runder (brukes når bruker eksplisitt sletter en multi-player runde)
       const allPlayerIds = [userId, ...round.players];
