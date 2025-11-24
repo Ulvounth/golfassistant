@@ -175,6 +175,18 @@ export function EditRoundPage() {
     setSelectedPlayers([...selectedPlayers, player]);
     setPlayerSearchQuery('');
     setPlayerSearchResults([]);
+
+    // Initialize scores for new player with par values
+    if (round && !playerScores[player.id]) {
+      const initialScores = round.holes.map(hole => ({
+        ...hole,
+        strokes: hole.par,
+      }));
+      setPlayerScores({
+        ...playerScores,
+        [player.id]: initialScores,
+      });
+    }
   };
 
   const handleRemovePlayer = (playerId: string) => {
@@ -196,6 +208,22 @@ export function EditRoundPage() {
       const hasMultiplePlayers = playersWithValidScores.length > 0;
 
       if (hasMultiplePlayers) {
+        // Validate that all selected players have complete score data
+        for (const player of playersWithValidScores) {
+          const scores = playerScores[player.id];
+          if (!scores || scores.length !== holeScores.length) {
+            throw new Error(`Incomplete score data for ${player.firstName} ${player.lastName}`);
+          }
+
+          // Check for invalid scores (0 or negative)
+          const hasInvalidScores = scores.some(hole => !hole || hole.strokes <= 0);
+          if (hasInvalidScores) {
+            throw new Error(
+              `Invalid scores for ${player.firstName} ${player.lastName}. All scores must be greater than 0.`
+            );
+          }
+        }
+
         // Only include players with valid scores
         const playerScoresData = [
           {
@@ -208,18 +236,26 @@ export function EditRoundPage() {
           })),
         ];
 
-        // Delete old round and create new multi-player round
-        await roundService.deleteRound(id);
+        // Create new multi-player round FIRST (before deleting old one)
+        try {
+          await roundService.createMultiPlayerRound({
+            courseId: round.courseId,
+            courseName: round.courseName,
+            teeColor: selectedTee,
+            numberOfHoles,
+            date: round.date,
+            playerScores: playerScoresData,
+          });
 
-        // Create new multi-player round
-        await roundService.createMultiPlayerRound({
-          courseId: round.courseId,
-          courseName: round.courseName,
-          teeColor: selectedTee,
-          numberOfHoles,
-          date: round.date,
-          playerScores: playerScoresData,
-        });
+          // Only delete old round if new one was created successfully
+          await roundService.deleteRound(id);
+        } catch (createError) {
+          console.error('Failed to create new multi-player round:', createError);
+          // Don't delete old round if creation failed
+          throw new Error(
+            'Failed to create multi-player round. Your original round was not modified.'
+          );
+        }
       } else {
         // Single player - use regular update (just update your own scores)
         await roundService.updateRound(id, {
@@ -244,7 +280,9 @@ export function EditRoundPage() {
       navigate('/profile');
     } catch (error) {
       console.error('Failed to update round:', error);
-      toast.error('Failed to update round. Please try again.');
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to update round. Please try again.';
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }

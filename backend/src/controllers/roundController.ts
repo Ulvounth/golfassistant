@@ -134,6 +134,11 @@ const updateUserHandicap = async (userId: string): Promise<void> => {
 export const getRounds = async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ message: 'Ikke autentisert' });
+      return;
+    }
+
     const limit = parseInt(req.query.limit as string) || 20;
     const nextToken = req.query.nextToken as string | undefined;
 
@@ -143,7 +148,15 @@ export const getRounds = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const queryParams: any = {
+    const queryParams: {
+      TableName: string;
+      IndexName: string;
+      KeyConditionExpression: string;
+      ExpressionAttributeValues: Record<string, string>;
+      ScanIndexForward: boolean;
+      Limit: number;
+      ExclusiveStartKey?: Record<string, unknown>;
+    } = {
       TableName: TABLES.ROUNDS,
       IndexName: 'userId-date-index',
       KeyConditionExpression: 'userId = :userId',
@@ -405,10 +418,9 @@ export const createMultiPlayerRound = async (req: Request, res: Response): Promi
     const slopeRating = course.slope[roundData.teeColor];
 
     const timestamp = new Date().toISOString();
-    const createdRounds = [];
 
-    // Create a round for each player
-    for (const playerScore of roundData.playerScores) {
+    // Prepare all rounds first
+    const roundsToCreate = roundData.playerScores.map(playerScore => {
       const totalScore = playerScore.holes.reduce((sum, hole) => sum + hole.strokes, 0);
       const totalPar = playerScore.holes.reduce((sum, hole) => sum + hole.par, 0);
 
@@ -425,7 +437,7 @@ export const createMultiPlayerRound = async (req: Request, res: Response): Promi
       // Get list of other players (excluding current player)
       const otherPlayers = playerIds.filter(id => id !== playerScore.playerId);
 
-      const round = {
+      return {
         id: roundId,
         userId: playerScore.playerId,
         courseId: roundData.courseId,
@@ -441,23 +453,35 @@ export const createMultiPlayerRound = async (req: Request, res: Response): Promi
         createdAt: timestamp,
         updatedAt: timestamp,
       };
+    });
 
-      await dynamodb.send(
-        new PutCommand({
-          TableName: TABLES.ROUNDS,
-          Item: round,
-        })
+    // Create all rounds in parallel (all or nothing approach)
+    try {
+      await Promise.all(
+        roundsToCreate.map(round =>
+          dynamodb.send(
+            new PutCommand({
+              TableName: TABLES.ROUNDS,
+              Item: round,
+            })
+          )
+        )
       );
-
-      createdRounds.push(round);
-
-      // Update handicap for this player
-      await updateUserHandicap(playerScore.playerId);
+    } catch (dbError) {
+      logger.error('Error creating rounds in DynamoDB:', dbError);
+      res.status(500).json({
+        message: 'Failed to create rounds. Please try again.',
+        error: dbError instanceof Error ? dbError.message : 'Unknown error',
+      });
+      return;
     }
 
+    // Update handicap for all players in parallel
+    await Promise.all(playerIds.map(playerId => updateUserHandicap(playerId)));
+
     res.status(201).json({
-      message: `Successfully created ${createdRounds.length} rounds`,
-      rounds: createdRounds,
+      message: `Successfully created ${roundsToCreate.length} rounds`,
+      rounds: roundsToCreate,
     });
   } catch (error) {
     logger.error('Create multi-player round error:', error);
@@ -534,7 +558,7 @@ export const deleteRound = async (req: Request, res: Response): Promise<void> =>
     const round = existing.Item;
 
     // Finn alle relaterte runder (samme dato/bane med andre spillere)
-    let relatedRounds: any[] = [];
+    let relatedRounds: Record<string, unknown>[] = [];
     if (round.players && round.players.length > 0) {
       // Dette er en multi-player runde, finn alle spillernes runder
       // Inkluder både deg selv (userId) og alle i players-arrayet
@@ -580,7 +604,7 @@ export const deleteRound = async (req: Request, res: Response): Promise<void> =>
     await Promise.all(deletePromises);
 
     // Oppdater handicap for alle berørte spillere
-    const uniquePlayerIds = [...new Set(relatedRounds.map(r => r.userId))];
+    const uniquePlayerIds = [...new Set(relatedRounds.map(r => r.userId as string))];
     await Promise.all(uniquePlayerIds.map(playerId => updateUserHandicap(playerId)));
 
     res.json({
