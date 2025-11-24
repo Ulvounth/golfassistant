@@ -104,8 +104,9 @@ export const roundService = {
 
   /**
    * Sletter en runde
+   * @param deleteRelated - Hvis true, sletter alle relaterte multi-player runder. Hvis false, sletter kun din egen runde.
    */
-  async deleteRound(id: string): Promise<void> {
-    await api.delete(`/rounds/${id}`);
+  async deleteRound(id: string, deleteRelated: boolean = true): Promise<void> {
+    await api.delete(`/rounds/${id}?deleteRelated=${deleteRelated}`);
   },
 };

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera } from 'lucide-react';
+import { Camera, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store/authStore';
 import { roundService } from '@/services/roundService';
@@ -25,6 +25,7 @@ export function ProfilePage() {
   const [uploading, setUploading] = useState(false);
   const [nextToken, setNextToken] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
+  const [recalculating, setRecalculating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -138,6 +139,20 @@ export function ProfilePage() {
     }
   };
 
+  const handleRecalculateHandicap = async () => {
+    try {
+      setRecalculating(true);
+      const updatedUser = await userService.recalculateHandicap();
+      updateUser(updatedUser);
+      toast.success('Handicap recalculated successfully!');
+    } catch (error) {
+      console.error('Failed to recalculate handicap:', error);
+      toast.error('Failed to recalculate handicap. Please try again.');
+    } finally {
+      setRecalculating(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
       <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">My Profile</h1>
@@ -177,9 +192,20 @@ export function ProfilePage() {
               {user?.firstName} {user?.lastName}
             </h2>
             <p className="text-sm sm:text-base text-gray-600 truncate">{user?.email}</p>
-            <p className="text-primary-600 font-semibold mt-1 text-sm sm:text-base">
-              Handicap: {formatHandicap(user?.handicap || 0)}
-            </p>
+            <div className="flex items-center gap-2 mt-1 justify-center sm:justify-start">
+              <p className="text-primary-600 font-semibold text-sm sm:text-base">
+                Handicap: {formatHandicap(user?.handicap || 0)}
+              </p>
+              <button
+                onClick={handleRecalculateHandicap}
+                disabled={recalculating}
+                className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Recalculate handicap based on current rounds"
+              >
+                <RefreshCw className={`w-3 h-3 ${recalculating ? 'animate-spin' : ''}`} />
+                {recalculating ? 'Updating...' : 'Update'}
+              </button>
+            </div>
           </div>
         </div>
       </div>

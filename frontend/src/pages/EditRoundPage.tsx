@@ -224,37 +224,55 @@ export function EditRoundPage() {
           }
         }
 
-        // Only include players with valid scores
-        const playerScoresData = [
-          {
-            playerId: currentUserId!,
-            holes: holeScores,
-          },
-          ...playersWithValidScores.map(player => ({
-            playerId: player.id,
-            holes: playerScores[player.id],
-          })),
-        ];
+        // Find NEW players (players that weren't in the original round)
+        const originalPlayerIds = round.players || [];
+        const newPlayers = playersWithValidScores.filter(
+          player => !originalPlayerIds.includes(player.id)
+        );
 
-        // Create new multi-player round FIRST (before deleting old one)
-        try {
-          await roundService.createMultiPlayerRound({
-            courseId: round.courseId,
-            courseName: round.courseName,
-            teeColor: selectedTee,
-            numberOfHoles,
-            date: round.date,
-            playerScores: playerScoresData,
+        // If there are NEW players, create rounds for YOU + NEW players only
+        if (newPlayers.length > 0) {
+          const playerScoresData = [
+            {
+              playerId: currentUserId!,
+              holes: holeScores,
+            },
+            ...newPlayers.map(player => ({
+              playerId: player.id,
+              holes: playerScores[player.id],
+            })),
+          ];
+
+          console.log('Creating multi-player round with NEW players:', {
+            playerCount: playerScoresData.length,
+            newPlayersCount: newPlayers.length,
           });
 
-          // Only delete old round if new one was created successfully
-          await roundService.deleteRound(id);
-        } catch (createError) {
-          console.error('Failed to create new multi-player round:', createError);
-          // Don't delete old round if creation failed
-          throw new Error(
-            'Failed to create multi-player round. Your original round was not modified.'
-          );
+          // Create new multi-player round FIRST (before deleting old one)
+          try {
+            await roundService.createMultiPlayerRound({
+              courseId: round.courseId,
+              courseName: round.courseName,
+              teeColor: selectedTee,
+              numberOfHoles,
+              date: round.date,
+              playerScores: playerScoresData,
+            });
+
+            // Only delete YOUR old round (not other players' rounds) - deleteRelated=false
+            await roundService.deleteRound(id, false);
+          } catch (createError) {
+            console.error('Failed to create new multi-player round:', createError);
+            // Don't delete old round if creation failed
+            throw new Error(
+              'Failed to create multi-player round. Your original round was not modified.'
+            );
+          }
+        } else {
+          // No NEW players, just update your own scores (existing players stay unchanged)
+          await roundService.updateRound(id, {
+            holes: holeScores,
+          });
         }
       } else {
         // Single player - use regular update (just update your own scores)

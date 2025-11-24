@@ -10,6 +10,7 @@ import {
 import { dynamodb, TABLES } from '../config/aws';
 import { CreateRoundInput, CreateMultiPlayerRoundInput } from '../validators/schemas';
 import { logger } from '../config/logger';
+import { updateUserHandicap } from '../utils/handicap';
 
 /**
  * Beregn score differential for handicap-beregning
@@ -36,96 +37,7 @@ export const calculateScoreDifferential = (
   return ((adjustedScore - adjustedRating) * 113) / slopeRating;
 };
 
-/**
- * Beregn og oppdater brukerens handicap basert på WHS (World Handicap System)
- * Handicap = gjennomsnitt av de 8 beste score differentials av de siste 20 rundene
- */
-const updateUserHandicap = async (userId: string): Promise<void> => {
-  try {
-    // Hent brukerens siste 20 runder
-    const roundsResult = await dynamodb.send(
-      new QueryCommand({
-        TableName: TABLES.ROUNDS,
-        IndexName: 'userId-date-index',
-        KeyConditionExpression: 'userId = :userId',
-        ExpressionAttributeValues: {
-          ':userId': userId,
-        },
-        ScanIndexForward: false, // Nyeste først
-        Limit: 20,
-      })
-    );
 
-    const rounds = roundsResult.Items || [];
-
-    if (rounds.length === 0) {
-      // Ingen runder, sett handicap til 54 (maks)
-      await dynamodb.send(
-        new UpdateCommand({
-          TableName: TABLES.USERS,
-          Key: { id: userId },
-          UpdateExpression: 'set handicap = :handicap, updatedAt = :updatedAt',
-          ExpressionAttributeValues: {
-            ':handicap': 54.0,
-            ':updatedAt': new Date().toISOString(),
-          },
-        })
-      );
-      return;
-    }
-
-    // Sorter etter score differential (beste først)
-    const sortedDifferentials = rounds.map(r => r.scoreDifferential).sort((a, b) => a - b);
-
-    // WHS regel: Bruk antall runder for å bestemme hvor mange som teller
-    let numberOfScoresToUse = 1;
-    if (rounds.length >= 20) {
-      numberOfScoresToUse = 8;
-    } else if (rounds.length >= 19) {
-      numberOfScoresToUse = 7;
-    } else if (rounds.length >= 16) {
-      numberOfScoresToUse = 6;
-    } else if (rounds.length >= 12) {
-      numberOfScoresToUse = 5;
-    } else if (rounds.length >= 9) {
-      numberOfScoresToUse = 4;
-    } else if (rounds.length >= 6) {
-      numberOfScoresToUse = 3;
-    } else if (rounds.length >= 3) {
-      numberOfScoresToUse = 2;
-    }
-
-    // Ta de beste differentialene
-    const bestDifferentials = sortedDifferentials.slice(0, numberOfScoresToUse);
-    const averageDifferential =
-      bestDifferentials.reduce((sum, diff) => sum + diff, 0) / bestDifferentials.length;
-
-    // Handicap Index = gjennomsnitt av beste differentials (avrundet til 1 desimal)
-    const newHandicap = Math.round(averageDifferential * 10) / 10;
-
-    // Oppdater brukerens handicap
-    await dynamodb.send(
-      new UpdateCommand({
-        TableName: TABLES.USERS,
-        Key: { id: userId },
-        UpdateExpression: 'set handicap = :handicap, updatedAt = :updatedAt',
-        ExpressionAttributeValues: {
-          ':handicap': Math.max(0, Math.min(54, newHandicap)), // Clamp mellom 0 og 54
-          ':updatedAt': new Date().toISOString(),
-        },
-      })
-    );
-
-    logger.info(
-      `Updated handicap for user ${userId}: ${newHandicap.toFixed(1)} (from ${
-        rounds.length
-      } rounds)`
-    );
-  } catch (error) {
-    logger.error('Error updating handicap:', error);
-    // Ikke kast feil - handicap-oppdatering skal ikke stoppe runde-lagring
-  }
-};
 
 /**
  * GET /api/rounds?limit=20&nextToken=...
@@ -534,13 +446,16 @@ export const updateRound = async (req: Request, res: Response): Promise<void> =>
 };
 
 /**
- * DELETE /api/rounds/:id
- * Slett runde og alle relaterte runder (multi-player)
+ * DELETE /api/rounds/:id?deleteRelated=true
+ * Slett runde og valgfritt alle relaterte runder (multi-player)
+ * Query param deleteRelated=true sletter alle spillernes runder
+ * Query param deleteRelated=false eller ikke satt sletter bare din egen runde
  */
 export const deleteRound = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const userId = req.user?.userId;
+    const deleteRelated = req.query.deleteRelated === 'true';
 
     // Hent runden som skal slettes
     const existing = await dynamodb.send(
@@ -559,9 +474,9 @@ export const deleteRound = async (req: Request, res: Response): Promise<void> =>
 
     // Finn alle relaterte runder (samme dato/bane med andre spillere)
     let relatedRounds: Record<string, unknown>[] = [];
-    if (round.players && round.players.length > 0) {
-      // Dette er en multi-player runde, finn alle spillernes runder
-      // Inkluder både deg selv (userId) og alle i players-arrayet
+    
+    if (deleteRelated && round.players && round.players.length > 0) {
+      // Slett alle spillernes runder (brukes når bruker eksplisitt sletter en multi-player runde)
       const allPlayerIds = [userId, ...round.players];
 
       const relatedRoundsResult = await Promise.all(
@@ -587,7 +502,7 @@ export const deleteRound = async (req: Request, res: Response): Promise<void> =>
       );
       relatedRounds = relatedRoundsResult.flat();
     } else {
-      // Single-player runde, bare denne
+      // Slett bare denne ene runden (default oppførsel)
       relatedRounds = [round];
     }
 

@@ -70,7 +70,7 @@ export const userService = {
   },
 
   /**
-   * Henter flere brukere basert på IDs (batch fetch)
+   * Henter flere brukere basert på IDs
    */
   async batchGetUsers(userIds: string[]): Promise<UserSearchResult[]> {
     if (userIds.length === 0) return [];
@@ -79,5 +79,14 @@ export const userService = {
       userIds,
     });
     return response.data;
+  },
+
+  /**
+   * Re-kalkulerer handicap basert på eksisterende runder
+   * Nyttig når runder er slettet manuelt fra databasen
+   */
+  async recalculateHandicap(): Promise<User> {
+    const response = await api.post<{ message: string; user: User }>('/user/recalculate-handicap');
+    return response.data.user;
   },
 };
