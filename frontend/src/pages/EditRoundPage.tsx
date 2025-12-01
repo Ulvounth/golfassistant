@@ -230,14 +230,14 @@ export function EditRoundPage() {
           player => !originalPlayerIds.includes(player.id)
         );
 
-        // If there are NEW players, create rounds for YOU + NEW players only
+        // If there are NEW players, create rounds for ALL players (you + all selected players)
         if (newPlayers.length > 0) {
           const playerScoresData = [
             {
               playerId: currentUserId!,
               holes: holeScores,
             },
-            ...newPlayers.map(player => ({
+            ...playersWithValidScores.map(player => ({
               playerId: player.id,
               holes: playerScores[player.id],
             })),
@@ -246,6 +246,7 @@ export function EditRoundPage() {
           console.log('Creating multi-player round with NEW players:', {
             playerCount: playerScoresData.length,
             newPlayersCount: newPlayers.length,
+            allPlayers: playersWithValidScores.map(p => `${p.firstName} ${p.lastName}`),
           });
 
           // Create new multi-player round FIRST (before deleting old one)
@@ -259,8 +260,8 @@ export function EditRoundPage() {
               playerScores: playerScoresData,
             });
 
-            // Only delete YOUR old round (not other players' rounds) - deleteRelated=false
-            await roundService.deleteRound(id, false);
+            // Delete ALL old rounds for ALL players (deleteRelated=true)
+            await roundService.deleteRound(id, true);
           } catch (createError) {
             console.error('Failed to create new multi-player round:', createError);
             // Don't delete old round if creation failed
