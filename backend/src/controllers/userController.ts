@@ -11,6 +11,7 @@ import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { dynamodb, s3Client, TABLES, S3_BUCKET } from '../config/aws';
 import { UpdateProfileInput } from '../validators/schemas';
 import { logger } from '../config/logger';
+import { updateUserHandicap } from '../utils/handicap';
 
 /**
  * GET /api/user/profile
@@ -315,5 +316,49 @@ export const batchGetUsers = async (req: Request, res: Response): Promise<void> 
   } catch (error) {
     logger.error('Batch get users error:', error);
     res.status(500).json({ message: 'Kunne ikke hente brukere' });
+  }
+};
+
+/**
+ * POST /api/user/recalculate-handicap
+ * Re-kalkuler brukerens handicap basert på eksisterende runder
+ * Nyttig når runder er slettet manuelt fra databasen
+ */
+export const recalculateHandicap = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      res.status(401).json({ message: 'Ikke autentisert' });
+      return;
+    }
+
+    // Re-kalkuler handicap
+    await updateUserHandicap(userId);
+
+    // Hent oppdatert brukerdata
+    const result = await dynamodb.send(
+      new GetCommand({
+        TableName: TABLES.USERS,
+        Key: { id: userId },
+      })
+    );
+
+    if (!result.Item) {
+      res.status(404).json({ message: 'Bruker ikke funnet' });
+      return;
+    }
+
+    logger.info(`Handicap recalculated for user ${userId}: ${result.Item.handicap}`);
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _password, ...userWithoutPassword } = result.Item;
+    res.json({
+      message: 'Handicap re-calculated successfully',
+      user: userWithoutPassword,
+    });
+  } catch (error) {
+    logger.error('Recalculate handicap error:', error);
+    res.status(500).json({ message: 'Kunne ikke re-kalkulere handicap' });
   }
 };

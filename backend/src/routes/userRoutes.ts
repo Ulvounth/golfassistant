@@ -7,6 +7,7 @@ import {
   getHandicapHistory,
   searchUsers,
   batchGetUsers,
+  recalculateHandicap,
 } from '../controllers/userController';
 import { validate } from '../middleware/validate';
 import { updateProfileSchema } from '../validators/schemas';
@@ -68,5 +69,11 @@ router.post('/profile-image', upload.single('image'), uploadProfileImage);
  * Hent handicap-historikk
  */
 router.get('/handicap-history', getHandicapHistory);
+
+/**
+ * POST /api/user/recalculate-handicap
+ * Re-kalkuler handicap basert på eksisterende runder
+ */
+router.post('/recalculate-handicap', recalculateHandicap);
 
 export default router;

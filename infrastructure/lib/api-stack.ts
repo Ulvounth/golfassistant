@@ -53,7 +53,8 @@ export class ApiStack extends cdk.Stack {
           process.env.JWT_SECRET ||
           'change-me-in-production',
         NODE_ENV: 'production',
-        // AWS_REGION is automatically set by Lambda runtime
+        CORS_ORIGIN: 'https://golfassistant.vercel.app',
+        // AWS_REGION is automatically set by Lambda runtime - do not set manually
       },
       timeout: cdk.Duration.seconds(30),
       memorySize: 512,
