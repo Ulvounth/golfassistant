@@ -198,21 +198,16 @@ export function EditRoundPage() {
 
     setSaving(true);
     try {
-      // Check if we have multiple players with VALID scores (not all zeros)
-      const playersWithValidScores = selectedPlayers.filter(player => {
-        const scores = playerScores[player.id] || [];
-        const totalStrokes = scores.reduce((sum, h) => sum + (h?.strokes || 0), 0);
-        return totalStrokes > 0 && scores.length > 0;
-      });
-
-      const hasMultiplePlayers = playersWithValidScores.length > 0;
+      const hasMultiplePlayers = selectedPlayers.length > 0;
 
       if (hasMultiplePlayers) {
-        // Validate that all selected players have complete score data
-        for (const player of playersWithValidScores) {
+        // Validate that ALL selected players have complete score data
+        for (const player of selectedPlayers) {
           const scores = playerScores[player.id];
           if (!scores || scores.length !== holeScores.length) {
-            throw new Error(`Incomplete score data for ${player.firstName} ${player.lastName}`);
+            throw new Error(
+              `Incomplete score data for ${player.firstName} ${player.lastName}. Please ensure all players have scores entered.`
+            );
           }
 
           // Check for invalid scores (0 or negative)
@@ -224,11 +219,15 @@ export function EditRoundPage() {
           }
         }
 
+        console.log('All players with scores:', {
+          totalPlayers: selectedPlayers.length + 1,
+          selectedPlayers: selectedPlayers.map(p => `${p.firstName} ${p.lastName}`),
+          currentUser: useAuthStore.getState().user?.firstName,
+        });
+
         // Find NEW players (players that weren't in the original round)
         const originalPlayerIds = round.players || [];
-        const newPlayers = playersWithValidScores.filter(
-          player => !originalPlayerIds.includes(player.id)
-        );
+        const newPlayers = selectedPlayers.filter(player => !originalPlayerIds.includes(player.id));
 
         // If there are NEW players, create rounds for ALL players (you + all selected players)
         if (newPlayers.length > 0) {
@@ -237,7 +236,7 @@ export function EditRoundPage() {
               playerId: currentUserId!,
               holes: holeScores,
             },
-            ...playersWithValidScores.map(player => ({
+            ...selectedPlayers.map(player => ({
               playerId: player.id,
               holes: playerScores[player.id],
             })),
@@ -246,7 +245,11 @@ export function EditRoundPage() {
           console.log('Creating multi-player round with NEW players:', {
             playerCount: playerScoresData.length,
             newPlayersCount: newPlayers.length,
-            allPlayers: playersWithValidScores.map(p => `${p.firstName} ${p.lastName}`),
+            allPlayers: selectedPlayers.map(p => `${p.firstName} ${p.lastName}`),
+            playerScoresData: playerScoresData.map(p => ({
+              playerId: p.playerId,
+              totalStrokes: p.holes.reduce((sum, h) => sum + h.strokes, 0),
+            })),
           });
 
           // Create new multi-player round FIRST (before deleting old one)
@@ -290,7 +293,7 @@ export function EditRoundPage() {
         console.error('Failed to refresh user data:', error);
       }
 
-      const playerCount = playersWithValidScores.length + 1;
+      const playerCount = selectedPlayers.length + 1;
       toast.success(
         `Round updated successfully! ${playerCount} ${
           playerCount === 1 ? 'player' : 'players'
