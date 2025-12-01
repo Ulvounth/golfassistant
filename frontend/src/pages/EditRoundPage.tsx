@@ -97,6 +97,12 @@ export function EditRoundPage() {
         playerIds
       );
 
+      console.log('🔍 Loading player scores:', {
+        playerIds,
+        foundRounds: relatedRounds.length,
+        roundIds: relatedRounds.map(r => ({ userId: r.userId, roundId: r.id })),
+      });
+
       // Map rundene til playerScores
       const scoresMap: Record<string, HoleScore[]> = {};
 
@@ -107,6 +113,7 @@ export function EditRoundPage() {
       // Hvis en spiller ikke har en runde (f.eks. nettopp lagt til), initialiser med par
       for (const playerId of playerIds) {
         if (!scoresMap[playerId]) {
+          console.warn(`⚠️ No round found for player ${playerId}, using par scores as fallback`);
           scoresMap[playerId] = roundData.holes.map(hole => ({
             ...hole,
             strokes: hole.par,
@@ -242,15 +249,36 @@ export function EditRoundPage() {
             })),
           ];
 
-          console.log('Creating multi-player round with NEW players:', {
+          console.log('🎯 Creating multi-player round with NEW players:', {
+            currentUser: currentUserId,
             playerCount: playerScoresData.length,
             newPlayersCount: newPlayers.length,
-            allPlayers: selectedPlayers.map(p => `${p.firstName} ${p.lastName}`),
+            originalPlayers: originalPlayerIds,
+            allPlayers: selectedPlayers.map(p => `${p.firstName} ${p.lastName} (${p.id})`),
             playerScoresData: playerScoresData.map(p => ({
               playerId: p.playerId,
+              holesCount: p.holes.length,
               totalStrokes: p.holes.reduce((sum, h) => sum + h.strokes, 0),
+              scores: p.holes.map(h => h.strokes).join(','),
             })),
           });
+
+          // Validate that we have scores for ALL players
+          for (const player of selectedPlayers) {
+            if (!playerScores[player.id]) {
+              console.error('❌ Missing scores for player:', player);
+              throw new Error(
+                `Missing scores for ${player.firstName} ${player.lastName}. Please refresh and try again.`
+              );
+            }
+            const scores = playerScores[player.id];
+            if (scores.length !== holeScores.length) {
+              console.error('❌ Incomplete scores for player:', player, scores);
+              throw new Error(
+                `Incomplete scores for ${player.firstName} ${player.lastName}. Expected ${holeScores.length} holes, got ${scores.length}.`
+              );
+            }
+          }
 
           // Create new multi-player round FIRST (before deleting old one)
           try {
@@ -263,10 +291,14 @@ export function EditRoundPage() {
               playerScores: playerScoresData,
             });
 
+            console.log('✅ Multi-player round created successfully');
+
             // Delete ALL old rounds for ALL players (deleteRelated=true)
             await roundService.deleteRound(id, true);
+
+            console.log('✅ Old rounds deleted successfully');
           } catch (createError) {
-            console.error('Failed to create new multi-player round:', createError);
+            console.error('❌ Failed to create new multi-player round:', createError);
             // Don't delete old round if creation failed
             throw new Error(
               'Failed to create multi-player round. Your original round was not modified.'
