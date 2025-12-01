@@ -1,4 +1,4 @@
-import serverless from 'serverless-http';
+import serverlessExpress from '@vendia/serverless-express';
 import express, { Express } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -23,26 +23,37 @@ const limiter = rateLimit({
 });
 
 // Middleware
-app.use(helmet());
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: [
+      'https://golfassistant.vercel.app',
+      'http://localhost:5173',
+      'http://localhost:3000',
+      '*',
+    ],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
   })
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/api/', limiter);
 
-// Routes - API Gateway sends /api/* so we need /api prefix here
-app.use('/api/auth', authRoutes);
-app.use('/api/user', userRoutes);
-app.use('/api/rounds', roundRoutes);
-app.use('/api/courses', courseRoutes);
-app.use('/api/leaderboard', leaderboardRoutes);
+// Routes - API Gateway already strips /api prefix, so routes start from /
+app.use('/auth', authRoutes);
+app.use('/user', userRoutes);
+app.use('/rounds', roundRoutes);
+app.use('/courses', courseRoutes);
+app.use('/leaderboard', leaderboardRoutes);
 
 // API Root & Health check - Welcome page with full documentation
-app.get(['/api', '/api/health'], (req, res) => {
+app.get(['/', '/health'], (req, res) => {
   res.json({
     name: 'GolfAssistant API',
     version: '1.0.0',
@@ -81,6 +92,5 @@ app.get(['/api', '/api/health'], (req, res) => {
 // Error handler
 app.use(errorHandler);
 
-// Export Lambda handler
-// Version: 1.0.1 - Fixed for AWS Lambda
-export const handler = serverless(app);
+// Export Lambda handler using @vendia/serverless-express
+export const handler = serverlessExpress({ app });

@@ -31,7 +31,8 @@ export class ApiStack extends cdk.Stack {
     super(scope, id, props);
 
     // Lambda function for API
-    // I produksjon: splitt dette i flere Lambda functions per route
+    // Using simple Function with pre-built code including node_modules
+    // Ensure backend/dist contains node_modules before deployment
     const logGroup = new logs.LogGroup(this, 'ApiHandlerLogGroup', {
       logGroupName: `/aws/lambda/golftracker-api-handler`,
       retention: logs.RetentionDays.ONE_WEEK,
@@ -39,11 +40,9 @@ export class ApiStack extends cdk.Stack {
     });
 
     const apiHandler = new lambda.Function(this, 'ApiHandler', {
-      runtime: lambda.Runtime.NODEJS_18_X, // Use 18.x - supported until April 2026
-      handler: 'lambda.handler', // Back to full lambda
-      code: lambda.Code.fromAsset('../backend/dist', {
-        exclude: ['index.js'], // Exclude Express server file
-      }),
+      runtime: lambda.Runtime.NODEJS_18_X,
+      handler: 'lambda.handler',
+      code: lambda.Code.fromAsset('../backend/dist'),
       environment: {
         DYNAMODB_USERS_TABLE: props.usersTable.tableName,
         DYNAMODB_ROUNDS_TABLE: props.roundsTable.tableName,
@@ -54,7 +53,7 @@ export class ApiStack extends cdk.Stack {
           process.env.JWT_SECRET ||
           'change-me-in-production',
         NODE_ENV: 'production',
-        AWS_REGION: this.region,
+        // AWS_REGION is automatically set by Lambda runtime
       },
       timeout: cdk.Duration.seconds(30),
       memorySize: 512,
