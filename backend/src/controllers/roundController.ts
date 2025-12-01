@@ -477,6 +477,10 @@ export const deleteRound = async (req: Request, res: Response): Promise<void> =>
       // Slett alle spillernes runder (brukes når bruker eksplisitt sletter en multi-player runde)
       const allPlayerIds = [userId, ...round.players];
 
+      // Get the createdAt timestamp of the round being deleted
+      // This helps us avoid deleting newly created rounds with the same date/course
+      const deletionThreshold = round.createdAt;
+
       const relatedRoundsResult = await Promise.all(
         allPlayerIds.map(async (playerId: string) => {
           const result = await dynamodb.send(
@@ -484,7 +488,7 @@ export const deleteRound = async (req: Request, res: Response): Promise<void> =>
               TableName: TABLES.ROUNDS,
               IndexName: 'userId-date-index',
               KeyConditionExpression: 'userId = :userId AND #date = :date',
-              FilterExpression: 'courseId = :courseId',
+              FilterExpression: 'courseId = :courseId AND createdAt <= :threshold',
               ExpressionAttributeNames: {
                 '#date': 'date',
               },
@@ -492,6 +496,7 @@ export const deleteRound = async (req: Request, res: Response): Promise<void> =>
                 ':userId': playerId,
                 ':date': round.date,
                 ':courseId': round.courseId,
+                ':threshold': deletionThreshold,
               },
             })
           );
