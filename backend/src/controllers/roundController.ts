@@ -422,19 +422,64 @@ export const updateRound = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    // Oppdater runde
+    const round = existing.Item;
+
+    // Recalculate totals and score differential with new holes
+    const newHoles = updates.holes;
+    const totalScore = newHoles.reduce(
+      (sum: number, hole: { strokes: number; par: number }) => sum + hole.strokes,
+      0
+    );
+    const totalPar = newHoles.reduce(
+      (sum: number, hole: { strokes: number; par: number }) => sum + hole.par,
+      0
+    );
+
+    // Get course info for rating and slope
+    const courseResult = await dynamodb.send(
+      new GetCommand({
+        TableName: TABLES.COURSES,
+        Key: { id: round.courseId },
+      })
+    );
+
+    if (!courseResult.Item) {
+      res.status(404).json({ message: 'Golfbane ikke funnet' });
+      return;
+    }
+
+    const course = courseResult.Item;
+    const courseRating =
+      round.numberOfHoles === 9 ? course.rating[round.teeColor] / 2 : course.rating[round.teeColor];
+    const slopeRating = course.slope[round.teeColor];
+
+    const scoreDifferential = calculateScoreDifferential(
+      totalScore,
+      courseRating,
+      slopeRating,
+      round.numberOfHoles
+    );
+
+    // Oppdater runde med recalculated values
     const result = await dynamodb.send(
       new UpdateCommand({
         TableName: TABLES.ROUNDS,
         Key: { id },
-        UpdateExpression: 'set holes = :holes, updatedAt = :updatedAt',
+        UpdateExpression:
+          'set holes = :holes, totalScore = :totalScore, totalPar = :totalPar, scoreDifferential = :scoreDifferential, updatedAt = :updatedAt',
         ExpressionAttributeValues: {
-          ':holes': updates.holes,
+          ':holes': newHoles,
+          ':totalScore': totalScore,
+          ':totalPar': totalPar,
+          ':scoreDifferential': scoreDifferential,
           ':updatedAt': new Date().toISOString(),
         },
         ReturnValues: 'ALL_NEW',
       })
     );
+
+    // Update handicap for the user
+    await updateUserHandicap(userId!);
 
     res.json(result.Attributes);
   } catch (error) {

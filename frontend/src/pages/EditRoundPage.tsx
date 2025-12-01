@@ -110,14 +110,22 @@ export function EditRoundPage() {
         scoresMap[relatedRound.userId] = relatedRound.holes;
       }
 
-      // Hvis en spiller ikke har en runde (f.eks. nettopp lagt til), initialiser med par
+      // Hvis en spiller ikke har en runde (f.eks. nettopp lagt til), BEHOLD eksisterende scores eller bruk par
       for (const playerId of playerIds) {
         if (!scoresMap[playerId]) {
-          console.warn(`⚠️ No round found for player ${playerId}, using par scores as fallback`);
-          scoresMap[playerId] = roundData.holes.map(hole => ({
-            ...hole,
-            strokes: hole.par,
-          }));
+          console.warn(`⚠️ No round found for player ${playerId}`);
+          // Check if we already have scores for this player in state (from previous edits)
+          const existingScores = playerScores[playerId];
+          if (existingScores && existingScores.length === roundData.holes.length) {
+            console.log(`ℹ️ Using existing scores for player ${playerId}`);
+            scoresMap[playerId] = existingScores;
+          } else {
+            console.log(`ℹ️ Using par scores as fallback for player ${playerId}`);
+            scoresMap[playerId] = roundData.holes.map(hole => ({
+              ...hole,
+              strokes: hole.par,
+            }));
+          }
         }
       }
 
@@ -305,10 +313,49 @@ export function EditRoundPage() {
             );
           }
         } else {
-          // No NEW players, just update your own scores (existing players stay unchanged)
-          await roundService.updateRound(id, {
-            holes: holeScores,
+          // No NEW players - update all existing players' rounds
+          console.log('📝 Updating existing multi-player round (no new players)');
+
+          // First, get all related rounds (for you + all selected players)
+          const allPlayerIds = [currentUserId!, ...selectedPlayers.map(p => p.id)];
+          const relatedRounds = await roundService.getRoundsByCriteria(
+            round.date,
+            round.courseId,
+            allPlayerIds
+          );
+
+          console.log('Found related rounds:', {
+            count: relatedRounds.length,
+            playerIds: relatedRounds.map(r => r.userId),
           });
+
+          // Update each player's round with their new scores
+          const updatePromises = [];
+
+          // Update your round
+          updatePromises.push(
+            roundService.updateRound(id, {
+              holes: holeScores,
+            })
+          );
+
+          // Update other players' rounds
+          for (const player of selectedPlayers) {
+            const playerRound = relatedRounds.find(r => r.userId === player.id);
+            if (playerRound) {
+              console.log(`Updating round for ${player.firstName} ${player.lastName}`);
+              updatePromises.push(
+                roundService.updateRound(playerRound.id, {
+                  holes: playerScores[player.id],
+                })
+              );
+            } else {
+              console.warn(`No round found for ${player.firstName} ${player.lastName}`);
+            }
+          }
+
+          await Promise.all(updatePromises);
+          console.log(`✅ Updated ${updatePromises.length} rounds`);
         }
       } else {
         // Single player - use regular update (just update your own scores)
