@@ -326,36 +326,74 @@ export function EditRoundPage() {
 
           console.log('Found related rounds:', {
             count: relatedRounds.length,
+            expectedCount: allPlayerIds.length,
             playerIds: relatedRounds.map(r => r.userId),
           });
 
-          // Update each player's round with their new scores
-          const updatePromises = [];
+          // Check if any players are missing rounds
+          const playersWithRounds = relatedRounds.map(r => r.userId);
+          const playersWithoutRounds = allPlayerIds.filter(id => !playersWithRounds.includes(id));
 
-          // Update your round
-          updatePromises.push(
-            roundService.updateRound(id, {
-              holes: holeScores,
-            })
-          );
+          if (playersWithoutRounds.length > 0) {
+            console.warn(
+              `⚠️ Missing rounds for ${playersWithoutRounds.length} players - recreating all rounds`
+            );
 
-          // Update other players' rounds
-          for (const player of selectedPlayers) {
-            const playerRound = relatedRounds.find(r => r.userId === player.id);
-            if (playerRound) {
-              console.log(`Updating round for ${player.firstName} ${player.lastName}`);
-              updatePromises.push(
-                roundService.updateRound(playerRound.id, {
-                  holes: playerScores[player.id],
-                })
-              );
-            } else {
-              console.warn(`No round found for ${player.firstName} ${player.lastName}`);
+            // If any player is missing their round, we need to recreate all rounds
+            const playerScoresData = [
+              {
+                playerId: currentUserId!,
+                holes: holeScores,
+              },
+              ...selectedPlayers.map(player => ({
+                playerId: player.id,
+                holes: playerScores[player.id],
+              })),
+            ];
+
+            // Create new multi-player round
+            await roundService.createMultiPlayerRound({
+              courseId: round.courseId,
+              courseName: round.courseName,
+              teeColor: selectedTee,
+              numberOfHoles,
+              date: round.date,
+              playerScores: playerScoresData,
+            });
+
+            // Delete only the old rounds that exist
+            for (const oldRound of relatedRounds) {
+              await roundService.deleteRound(oldRound.id, false);
             }
-          }
 
-          await Promise.all(updatePromises);
-          console.log(`✅ Updated ${updatePromises.length} rounds`);
+            console.log(`✅ Recreated rounds for all ${allPlayerIds.length} players`);
+          } else {
+            // All players have rounds - just update them
+            const updatePromises = [];
+
+            // Update your round
+            updatePromises.push(
+              roundService.updateRound(id, {
+                holes: holeScores,
+              })
+            );
+
+            // Update other players' rounds
+            for (const player of selectedPlayers) {
+              const playerRound = relatedRounds.find(r => r.userId === player.id);
+              if (playerRound) {
+                console.log(`Updating round for ${player.firstName} ${player.lastName}`);
+                updatePromises.push(
+                  roundService.updateRound(playerRound.id, {
+                    holes: playerScores[player.id],
+                  })
+                );
+              }
+            }
+
+            await Promise.all(updatePromises);
+            console.log(`✅ Updated ${updatePromises.length} rounds`);
+          }
         }
       } else {
         // Single player - use regular update (just update your own scores)
