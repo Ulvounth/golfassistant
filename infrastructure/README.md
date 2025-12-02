@@ -1,6 +1,6 @@
 ﻿# Infrastructure
 
-AWS CDK deployment for GolfTracker.
+AWS CDK deployment for GolfAssistant.
 
 ## Resources
 

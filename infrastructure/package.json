@@ -1,7 +1,7 @@
 {
-  "name": "golftracker-infrastructure",
+  "name": "golfassistant-infrastructure",
   "version": "1.0.0",
-  "description": "AWS CDK Infrastructure for GolfTracker",
+  "description": "AWS CDK Infrastructure for GolfAssistant",
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",

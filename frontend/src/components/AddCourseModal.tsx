@@ -10,7 +10,7 @@ interface AddCourseModalProps {
   onCourseAdded: (courseId: string, courseName: string) => void;
 }
 
-const DRAFT_KEY = 'golftracker_course_draft';
+const DRAFT_KEY = 'golfassistant_course_draft';
 
 /**
  * Modal for adding new golf course

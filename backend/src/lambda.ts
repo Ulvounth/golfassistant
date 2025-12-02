@@ -84,7 +84,7 @@ app.get(['/', '/health'], (req, res) => {
         topPlayers: 'GET /api/leaderboard',
       },
     },
-    documentation: 'https://github.com/Ulvounth/golftracker',
+    documentation: 'https://github.com/Ulvounth/golfassistant',
     frontend: 'https://golfassistant.vercel.app',
   });
 });

@@ -1,6 +1,6 @@
 ﻿# GolfAssistant ⛳
 
-[![CI/CD Pipeline](https://github.com/Ulvounth/golftracker/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Ulvounth/golftracker/actions/workflows/ci-cd.yml)
+[![CI/CD Pipeline](https://github.com/Ulvounth/golfassistant/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Ulvounth/golfassistant/actions/workflows/ci-cd.yml)
 
 Your digital golf assistant - track rounds, follow your handicap, and compete with friends.
 
@@ -53,7 +53,7 @@ Your digital golf assistant - track rounds, follow your handicap, and compete wi
 ## 📦 Project Structure
 
 ```
-golftracker/
+golfassistant/
 ├── frontend/          # React app (Vercel)
 ├── backend/           # Express API (AWS Lambda)
 ├── infrastructure/    # AWS CDK (DynamoDB, S3, etc.)
@@ -74,7 +74,7 @@ golftracker/
 
 - Runs on AWS Lambda (Node.js 18)
 - API Gateway as proxy
-- Deploy with: `cd infrastructure && cdk deploy GolfTrackerApiStack`
+- Deploy with: `cd infrastructure && cdk deploy GolfAssistantApiStack`
 
 **Database:**
 

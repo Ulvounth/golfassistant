@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Trash2, X } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store/authStore';
 import { roundService } from '@/services/roundService';
 import { userService, UserSearchResult } from '@/services/userService';
 import { GolfRound, HoleScore } from '@/types';
+import { PlayerSearch } from '@/components/PlayerSearch';
 
 /**
  * EditRoundPage - side for å redigere eksisterende golfrunde
@@ -22,9 +23,6 @@ export function EditRoundPage() {
   const [numberOfHoles, setNumberOfHoles] = useState<9 | 18>(18);
   const [roundDate, setRoundDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [selectedPlayers, setSelectedPlayers] = useState<UserSearchResult[]>([]);
-  const [playerSearchQuery, setPlayerSearchQuery] = useState('');
-  const [playerSearchResults, setPlayerSearchResults] = useState<UserSearchResult[]>([]);
-  const [searchingPlayers, setSearchingPlayers] = useState(false);
   const [holeScores, setHoleScores] = useState<HoleScore[]>([]);
   const [playerScores, setPlayerScores] = useState<Record<string, HoleScore[]>>({});
   const [saving, setSaving] = useState(false);
@@ -155,33 +153,8 @@ export function EditRoundPage() {
     setPlayerScores(newPlayerScores);
   };
 
-  const handlePlayerSearch = async (query: string) => {
-    setPlayerSearchQuery(query);
-
-    if (!query || query.length < 2) {
-      setPlayerSearchResults([]);
-      return;
-    }
-
-    setSearchingPlayers(true);
-    try {
-      const results = await userService.searchUsers(query);
-      const filtered = results.filter(
-        user => user.id !== currentUserId && !selectedPlayers.find(p => p.id === user.id)
-      );
-      setPlayerSearchResults(filtered);
-    } catch (error) {
-      console.error('Failed to search users:', error);
-      setPlayerSearchResults([]);
-    } finally {
-      setSearchingPlayers(false);
-    }
-  };
-
   const handleAddPlayer = (player: UserSearchResult) => {
     setSelectedPlayers([...selectedPlayers, player]);
-    setPlayerSearchQuery('');
-    setPlayerSearchResults([]);
 
     // Initialize scores for new player with par values
     if (round && !playerScores[player.id]) {
@@ -454,84 +427,14 @@ export function EditRoundPage() {
           </p>
         </div>
 
-        {/* Players in round */}
-        {selectedPlayers.length > 0 && (
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Players in round:
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {selectedPlayers.map(player => (
-                <div
-                  key={player.id}
-                  className="flex items-center gap-2 px-3 py-1 bg-green-100 rounded-full text-sm"
-                >
-                  <span>
-                    {player.firstName} {player.lastName}
-                  </span>
-                  <button
-                    onClick={() => handleRemovePlayer(player.id)}
-                    className="text-gray-600 hover:text-red-600"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Add player search */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Add more players (optional):
-          </label>
-          <div className="relative">
-            <input
-              type="text"
-              className="input"
-              placeholder="Search for users..."
-              value={playerSearchQuery}
-              onChange={e => handlePlayerSearch(e.target.value)}
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Search for users who played in the round (minimum 2 characters)
-            </p>
-
-            {/* Search results dropdown */}
-            {playerSearchQuery.length >= 2 && (
-              <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                {searchingPlayers && (
-                  <div className="p-4 text-center text-gray-500">Searching...</div>
-                )}
-
-                {!searchingPlayers && playerSearchResults.length === 0 && (
-                  <div className="p-4 text-center text-gray-500 border border-orange-200 bg-orange-50 m-2 rounded">
-                    <p className="font-medium text-orange-800">⚠️ No users found</p>
-                    <p className="text-sm text-gray-600 mt-1">
-                      The player &quot;{playerSearchQuery}&quot; is not registered in the system.
-                      Only registered users can be added to a round.
-                    </p>
-                  </div>
-                )}
-
-                {!searchingPlayers &&
-                  playerSearchResults.map(user => (
-                    <button
-                      key={user.id}
-                      onClick={() => handleAddPlayer(user)}
-                      className="w-full px-4 py-2 text-left hover:bg-gray-100 border-b last:border-b-0"
-                    >
-                      <div className="font-medium">
-                        {user.firstName} {user.lastName}
-                      </div>
-                      <div className="text-sm text-gray-500">{user.email}</div>
-                    </button>
-                  ))}
-              </div>
-            )}
-          </div>
-        </div>
+        <PlayerSearch
+          selectedPlayers={selectedPlayers}
+          onAddPlayer={handleAddPlayer}
+          onRemovePlayer={handleRemovePlayer}
+          currentUserId={currentUserId}
+          label="Add more players (optional):"
+        />
       </div>
 
       {/* Scores */}
