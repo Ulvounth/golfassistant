@@ -64,7 +64,7 @@ export class ApiStack extends cdk.Stack {
     // Gi Lambda tilgang til DynamoDB tabeller
     props.usersTable.grantReadWriteData(apiHandler);
     props.roundsTable.grantReadWriteData(apiHandler);
-    props.coursesTable.grantReadData(apiHandler);
+    props.coursesTable.grantReadWriteData(apiHandler);
 
     // Gi Lambda tilgang til S3 bucket
     props.profileBucket.grantReadWrite(apiHandler);
