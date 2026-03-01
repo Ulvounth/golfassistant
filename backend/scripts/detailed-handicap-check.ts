@@ -19,12 +19,14 @@ function calculateHandicap(scoreDifferentials: number[]): number {
 
   let numberOfScoresToUse = 1;
   if (sorted.length >= 20) numberOfScoresToUse = 8;
-  else if (sorted.length >= 19) numberOfScoresToUse = 7;
+  else if (sorted.length >= 19) numberOfScoresToUse = 8;
+  else if (sorted.length >= 18) numberOfScoresToUse = 7;
   else if (sorted.length >= 16) numberOfScoresToUse = 6;
-  else if (sorted.length >= 12) numberOfScoresToUse = 5;
-  else if (sorted.length >= 9) numberOfScoresToUse = 4;
-  else if (sorted.length >= 6) numberOfScoresToUse = 3;
-  else if (sorted.length >= 3) numberOfScoresToUse = 2;
+  else if (sorted.length >= 15) numberOfScoresToUse = 5;
+  else if (sorted.length >= 12) numberOfScoresToUse = 4;
+  else if (sorted.length >= 9) numberOfScoresToUse = 3;
+  else if (sorted.length >= 6) numberOfScoresToUse = 2;
+  else if (sorted.length >= 3) numberOfScoresToUse = 1;
 
   const best = sorted.slice(0, numberOfScoresToUse);
   const average = best.reduce((sum, diff) => sum + diff, 0) / best.length;
@@ -108,12 +110,14 @@ async function detailedHandicapCheck() {
     // Finn ut hvor mange runder som brukes
     let numberOfScoresToUse = 1;
     if (last20Rounds.length >= 20) numberOfScoresToUse = 8;
-    else if (last20Rounds.length >= 19) numberOfScoresToUse = 7;
+    else if (last20Rounds.length >= 19) numberOfScoresToUse = 8;
+    else if (last20Rounds.length >= 18) numberOfScoresToUse = 7;
     else if (last20Rounds.length >= 16) numberOfScoresToUse = 6;
-    else if (last20Rounds.length >= 12) numberOfScoresToUse = 5;
-    else if (last20Rounds.length >= 9) numberOfScoresToUse = 4;
-    else if (last20Rounds.length >= 6) numberOfScoresToUse = 3;
-    else if (last20Rounds.length >= 3) numberOfScoresToUse = 2;
+    else if (last20Rounds.length >= 15) numberOfScoresToUse = 5;
+    else if (last20Rounds.length >= 12) numberOfScoresToUse = 4;
+    else if (last20Rounds.length >= 9) numberOfScoresToUse = 3;
+    else if (last20Rounds.length >= 6) numberOfScoresToUse = 2;
+    else if (last20Rounds.length >= 3) numberOfScoresToUse = 1;
 
     console.log(`\n🎯 Handicap-beregning (WHS):`);
     console.log(`   Bruker ${numberOfScoresToUse} beste av ${last20Rounds.length} runder`);

@@ -286,9 +286,8 @@ export function AddCourseModal({ isOpen, onClose, onCourseAdded }: AddCourseModa
                           onChange={e =>
                             setFormData({
                               ...formData,
-                              [`rating${tee.charAt(0).toUpperCase() + tee.slice(1)}`]: parseFloat(
-                                e.target.value
-                              ),
+                              [`rating${tee.charAt(0).toUpperCase() + tee.slice(1)}`]:
+                                parseFloat(e.target.value) || 0,
                             })
                           }
                         />
@@ -316,9 +315,8 @@ export function AddCourseModal({ isOpen, onClose, onCourseAdded }: AddCourseModa
                           onChange={e =>
                             setFormData({
                               ...formData,
-                              [`slope${tee.charAt(0).toUpperCase() + tee.slice(1)}`]: parseInt(
-                                e.target.value
-                              ),
+                              [`slope${tee.charAt(0).toUpperCase() + tee.slice(1)}`]:
+                                parseInt(e.target.value) || 0,
                             })
                           }
                         />
@@ -373,7 +371,9 @@ export function AddCourseModal({ isOpen, onClose, onCourseAdded }: AddCourseModa
                             max={6}
                             className="w-16 px-2 py-1 border rounded"
                             value={hole.par}
-                            onChange={e => handleHoleChange(index, 'par', parseInt(e.target.value))}
+                            onChange={e =>
+                              handleHoleChange(index, 'par', parseInt(e.target.value) || 0)
+                            }
                           />
                         </td>
                         <td className="py-2">
@@ -384,7 +384,7 @@ export function AddCourseModal({ isOpen, onClose, onCourseAdded }: AddCourseModa
                             className="w-16 px-2 py-1 border rounded"
                             value={hole.strokeIndex}
                             onChange={e =>
-                              handleHoleChange(index, 'strokeIndex', parseInt(e.target.value))
+                              handleHoleChange(index, 'strokeIndex', parseInt(e.target.value) || 0)
                             }
                           />
                         </td>
@@ -395,7 +395,7 @@ export function AddCourseModal({ isOpen, onClose, onCourseAdded }: AddCourseModa
                               className="w-20 px-2 py-1 border rounded text-xs"
                               value={hole.length[tee]}
                               onChange={e =>
-                                handleHoleLengthChange(index, tee, parseInt(e.target.value))
+                                handleHoleLengthChange(index, tee, parseInt(e.target.value) || 0)
                               }
                             />
                           </td>

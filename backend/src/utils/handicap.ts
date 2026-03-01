@@ -49,17 +49,21 @@ export const updateUserHandicap = async (userId: string): Promise<void> => {
     if (rounds.length >= 20) {
       numberOfScoresToUse = 8;
     } else if (rounds.length >= 19) {
+      numberOfScoresToUse = 8;
+    } else if (rounds.length >= 18) {
       numberOfScoresToUse = 7;
     } else if (rounds.length >= 16) {
       numberOfScoresToUse = 6;
-    } else if (rounds.length >= 12) {
+    } else if (rounds.length >= 15) {
       numberOfScoresToUse = 5;
-    } else if (rounds.length >= 9) {
+    } else if (rounds.length >= 12) {
       numberOfScoresToUse = 4;
-    } else if (rounds.length >= 6) {
+    } else if (rounds.length >= 9) {
       numberOfScoresToUse = 3;
-    } else if (rounds.length >= 3) {
+    } else if (rounds.length >= 6) {
       numberOfScoresToUse = 2;
+    } else if (rounds.length >= 3) {
+      numberOfScoresToUse = 1;
     }
 
     // Ta de beste differentialene

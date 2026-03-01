@@ -183,12 +183,18 @@ export const getHandicapHistory = async (req: Request, res: Response): Promise<v
         // Bruk WHS-regler for antall runder å telle
         let countToUse = 1;
         if (currentRounds.length >= 20) countToUse = 8;
-        else if (currentRounds.length >= 6) countToUse = Math.floor(currentRounds.length * 0.4);
+        else if (currentRounds.length >= 19) countToUse = 8;
+        else if (currentRounds.length >= 18) countToUse = 7;
+        else if (currentRounds.length >= 16) countToUse = 6;
+        else if (currentRounds.length >= 15) countToUse = 5;
+        else if (currentRounds.length >= 12) countToUse = 4;
+        else if (currentRounds.length >= 9) countToUse = 3;
+        else if (currentRounds.length >= 6) countToUse = 2;
         else if (currentRounds.length >= 3) countToUse = 1;
 
         const bestDiffs = sortedDiffs.slice(0, countToUse);
         const avgDiff = bestDiffs.reduce((sum, diff) => sum + diff, 0) / bestDiffs.length;
-        handicap = Math.max(0, Math.min(54, avgDiff * 0.96));
+        handicap = Math.max(0, Math.min(54, avgDiff));
       }
 
       history.push({
